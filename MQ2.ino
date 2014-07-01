@@ -10,6 +10,8 @@
   
   Contribution: epierre
   Based on http://sandboxelectronics.com/?p=165
+  
+  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
  
 */
 
