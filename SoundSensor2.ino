@@ -11,7 +11,7 @@
   based on :https://www.inkling.com/read/arduino-cookbook-michael-margolis-2nd/chapter-6/recipe-6-7
  
 */
-
+TBD: http://davidegironi.blogspot.fr/2014/02/a-simple-sound-pressure-level-meter-spl.html
 #include <Sleep_n0m1.h>
 #include <SPI.h>
 #include <RF24.h>
@@ -59,7 +59,7 @@ void loop()
 {     
  long sumOfSquares = 0;
   for (int i=0; i<numberOfSamples; i++) { //take many readings and average them
-    sample = analogRead(0);               //take a reading
+    sample = analogRead(A0);           //take a reading
     signal = (sample - middleValue);      //work out its offset from the center
     signal *= signal;                     //square it to make all values positive
     sumOfSquares += signal;               //add to the total
@@ -75,7 +75,8 @@ void loop()
   Serial.println(runningAverage);        //print the value so you can check it
 
   if (runningAverage != lastSND) {
-      gw.sendVariable(CHILD_ID_SND, 37, runningAverage);
+      //gw.sendVariable(CHILD_ID_SND, 37, runningAverage);
+      gw.sendVariable(CHILD_ID_SND, 37, sample);
       lastSND = runningAverage;
   }
   

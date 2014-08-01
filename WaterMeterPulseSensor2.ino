@@ -61,8 +61,8 @@ void setup()
 
   // Fetch last known pulse count value from gw
   pulseCount = oldPulseCount = atol(gw.getStatus(CHILD_ID, V_VAR1));
-  Serial.print("Last pulse count from gw:");
-  Serial.println(pulseCount);
+  //Serial.print("Last pulse count from gw:");
+  //Serial.println(pulseCount);
   //  attachInterrupt(INTERRUPT, onPulse, RISING);
   lastSend = millis();
   
@@ -93,17 +93,17 @@ void loop()
       if (flow<((unsigned long)MAX_FLOW)) {
         gw.sendVariable(CHILD_ID, V_FLOW, flow, 2);                   // Send flow value to gw
       }  
-      Serial.print("l/min:");
-      Serial.println(flow);
+      //Serial.print("l/min:");
+      //Serial.println(flow);
       oldflow = flow;
     }
   
     // No Pulse count in 2min 
 	
-	Serial.print("currentTime");
-	Serial.println(currentTime);
-	Serial.print("lastPulse");
-	Serial.println(lastPulse);
+	//Serial.print("currentTime");
+	//Serial.println(currentTime);
+	//Serial.print("lastPulse");
+	//Serial.println(lastPulse);
  
     if(currentTime - lastPulse > 120000){
 		flow = 0;
@@ -115,12 +115,12 @@ void loop()
       gw.sendVariable(CHILD_ID, V_VAR1, pulseCount);                  // Send  volumevalue to gw VAR1
       double volume = ((double)pulseCount/((double)PULSE_FACTOR));     
       oldPulseCount = pulseCount;
-        Serial.print("Pulse count:");
-        Serial.println(pulseCount);
+        //Serial.print("Pulse count:");
+        //Serial.println(pulseCount);
       if (volume != oldvolume) {
         gw.sendVariable(CHILD_ID, V_VOLUME, volume, 3);               // Send volume value to gw
-          Serial.print("m3:");
-          Serial.println(volume, 3);
+          //Serial.print("m3:");
+          //Serial.println(volume, 3);
         oldvolume = volume;
       } 
     }
@@ -149,7 +149,7 @@ void onPulse()
     
     flow = (60000000.0 /interval) / ppl;
     lastBlink = newBlink;
-	  Serial.println(flow, 4);
+	//  Serial.println(flow, 4);
   }
   if( (millis() - lastDebounce) > debounceDelay){
     pulseCount++; 
