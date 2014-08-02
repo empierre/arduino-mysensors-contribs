@@ -7,7 +7,8 @@
   A         >>> A0
   GND       >>> GND
 
-  BAsed on: http://www.dfrobot.com/wiki/index.php/Sharp_GP2Y1010AU 
+  Based on: http://www.dfrobot.com/wiki/index.php/Sharp_GP2Y1010AU 
+  Authors: Cyrille Médard de Chardon (serialC), Christophe Trefois (Trefex)
   Contribution: epierre
  
 */
@@ -20,7 +21,7 @@
 #include <Wire.h>
 
 #define CHILD_ID_DUST 0
-#define DUST_SENSOR_ANALOG_PIN 0
+#define DUST_SENSOR_ANALOG_PIN 1
 
 unsigned long SLEEP_TIME = 30; // Sleep time between reads (in seconds)
 //VARIABLES
@@ -59,7 +60,7 @@ void loop()
 
   // linear eqaution taken from http://www.howmuchsnow.com/arduino/airquality/
   // Chris Nafis (c) 2012
-  dustDensity = 0.17 * calcVoltage - 0.1;
+  dustDensity = (0.17 * calcVoltage - 0.1)*1000;
  
   Serial.print("Raw Signal Value (0-1023): ");
   Serial.print(voMeasured);
@@ -68,7 +69,7 @@ void loop()
   Serial.print(calcVoltage);
   
   Serial.print(" - Dust Density: ");
-  Serial.println(dustDensity); // unit: mg/m3
+  Serial.println(dustDensity); // unit: ug/m3
  
   if (ceil(dustDensity) != lastDUST) {
       gw.sendVariable(CHILD_ID_DUST, V_VAR1, (int)ceil(dustDensity));
