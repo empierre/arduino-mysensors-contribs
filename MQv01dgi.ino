@@ -63,24 +63,24 @@
 #define         GAS_LPG_sec                 (14)
 #define         GAS_CH4                     (15)
 /*****************************Globals***********************************************/
-float           CL2Curve[2]     =  {56.01727602, -1.359048399}; //MQ131
-float           O3Curve[2]      =  {42.84561841, -1.043297135}; //MQ131
-float           CO2Curve[2]     =  {113.7105289, -3.019713765}; //MQ135
 float           COCurve[2]      =  {37793.94418, -3.24294658};  //MQ2
-float           CO_secCurve[2]  =  {726.7809737, -4.040111669}; //MQ135
-float           NH4Curve[2]     =  {84.07117895, -4.41107687};  //MQ135
-float           CO2H50HCurve[2] =  {74.77989144, 3.010328075};  //MQ135
-float           CH3Curve[2]     =  {47.01770503, -3.281901967}; //MQ135
-float           CH3_2COCurve[2] =  {7.010800878, -2.122018939}; //MQ135
 float           H2Curve[2]      =  {957.1355042, -2.07442628};  //MQ2
-float           C2H5OHCurve[2]  =  {2.995093465, -3.148170562}; //TGS2600
-float           C4H10Curve[2]   =  {3.555567714, -3.337882361}; //TGS2600
 float           LPGCurve[2]     =  {591.6128784, -1.679699732}; //MQ2
 float           SmokeCurve[2]   =  {3426.376355, -2.225037973}; //MQ2
 float           LPG_secCurve[2] =  {1051.200149, -2.434978052}; //MQ6
 float           CH4Curve[2]     =  {1081.498208, -1.443059209}; //MQ6
 float           H2_secCurve[2]  =  {137997.7173, -3.76632598};  //MQ6
-float           H2_terCurve[2]  =  {3.417050674, -2.887154835}; //TGS2600
+float           CL2Curve[2]     =  {56.01727602, -1.359048399}; //MQ131
+float           O3Curve[2]      =  {42.84561841, -1.043297135}; //MQ131
+float           CO2Curve[2]     =  {113.7105289, -3.019713765}; //MQ135
+float           CO_secCurve[2]  =  {726.7809737, -4.040111669}; //MQ135
+float           NH4Curve[2]     =  {84.07117895, -4.41107687};  //MQ135
+float           CO2H50HCurve[2] =  {74.77989144, 3.010328075};  //MQ135
+float           CH3Curve[2]     =  {47.01770503, -3.281901967}; //MQ135
+float           CH3_2COCurve[2] =  {7.010800878, -2.122018939}; //MQ135
+float           C2H5OHCurve[2]  =  {0.2995093465, -3.148170562}; //TGS2600
+float           C4H10Curve[2]   =  {0.3555567714, -3.337882361}; //TGS2600
+float           H2_terCurve[2]  =  {0.3417050674, -2.887154835}; //TGS2600
 float           Ro              =  10;                 //Ro is initialized to 10 kilo ohms
 
 
@@ -144,7 +144,7 @@ void loop()
    Serial.print("LPG   :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro0,GAS_LPG,MQ2_SENSOR) );
    Serial.print( "ppm" );
-   Serial.print("    ");   
+   Serial.print("   ");   
    Serial.print("CO    :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro0,GAS_CO_sec,MQ2_SENSOR) );
    Serial.print( "ppm" );
@@ -178,26 +178,26 @@ void loop()
    Serial.print("H2    :"); 
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_H2,TGS2600_SENSOR) );
    Serial.print( "ppm" );
-      Serial.print("    ");   
+      Serial.print(" ");   
    Serial.print("C2H5OH:"); 
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_C2H5OH,TGS2600_SENSOR) );
    Serial.print( "ppm" );
-      Serial.print("    ");   
+      Serial.print(" ");   
    Serial.print("C4H10 :"); 
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_C4H10,TGS2600_SENSOR) );
    Serial.print( "ppm" );
    Serial.print("\n");    
    //MQ1365  CO NH4 CH3 CO2
    Serial.print("MQ135  :"); 
-   Serial.print("CO2    :"); 
+   Serial.print("CO2   :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CO2,MQ135_SENSOR) );
    Serial.print( "ppm" );      
       Serial.print("    ");   
    Serial.print("CO    :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CO,MQ135_SENSOR) );
    Serial.print( "ppm" );      
-      Serial.print("    ");   
-   Serial.print("CH3    :"); 
+      Serial.print("     ");   
+   Serial.print("CH3   :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CH3,MQ135_SENSOR) );
    Serial.print( "ppm" );      
       Serial.print("    ");   
@@ -213,9 +213,9 @@ void loop()
   // linear eqaution taken from http://www.howmuchsnow.com/arduino/airquality/
   // Chris Nafis (c) 2012
   dustDensity = (0.17 * calcVoltage - 0.1)*1000;
-  Serial.print("Raw Signal Value (0-1023): ");
+  Serial.print("Dust   :raw   : ");
   Serial.print(voMeasured);
-  Serial.print(" - Voltage: ");
+  Serial.print("    Voltage: ");
   Serial.print(calcVoltage);
   Serial.print(" - Dust Density: ");
   Serial.println(dustDensity); // unit: ug/m3  
