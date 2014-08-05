@@ -51,11 +51,12 @@ void setup()
 void loop()      
 {    
   
-  if(state!=0){
+  if(state>=40){ // basically below 40 so ignire basic level
         gw.sendVariable(CHILD_ID_VIBRATION, V_VAR1, (int(state)));
         state = 0;  
         digitalWrite(SensorLED,HIGH);
    }    else {
+        state = 0;  
         digitalWrite(SensorLED,LOW);
   } 
 

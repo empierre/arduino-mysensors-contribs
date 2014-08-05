@@ -16,7 +16,7 @@ float lastPressure = -1;
 float lastTemp = -1;
 int lastForecast = -1;
 Sleep sleep;
-char *weather[] = {"stable","sunny","cloudy","unstable","thunderstorm","unknown"};
+char *weather[]={"stable","sunny","cloudy","unstable","thunderstorm","unknown"};
 int minutes;
 float pressureSamples[180];
 int minuteCount = 0;
