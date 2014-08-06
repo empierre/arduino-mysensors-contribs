@@ -28,7 +28,8 @@
 #define MQ131_SENSOR 2
 #define TGS2600_SENSOR 3
 #define MQ135_SENSOR 4
-#define DUST_SENSOR_ANALOG_PIN 1
+#define DUST_SENSOR_ANALOG_PIN  11
+#define DUST_SENSOR_DIGITAL_PIN 13
 /************************Hardware Related Macros************************************/
 #define 	MQ_SENSOR                    (0)  //define which analog input channel you are going to use
 #define         RL_VALUE                     (5)     //define the load resistance on the board, in kilo ohms
@@ -134,6 +135,7 @@ Serial.begin(115200);
   Serial.print("    MQ135:"); 
   Ro3 = MQCalibration(MQ135_SENSOR);
   Serial.println(Ro4);
+ pinMode(DUST_SENSOR_DIGITAL_PIN,OUTPUT); //light on led
 }
 
 
@@ -205,14 +207,19 @@ void loop()
    Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_NH4,MQ135_SENSOR) );
    Serial.print( "ppm" );      
    Serial.print("\n");  
- 
-   uint16_t voMeasured = analogRead(DUST_SENSOR_ANALOG_PIN);// Get DUST value
+
+  digitalWrite(DUST_SENSOR_DIGITAL_PIN,LOW); // power on the LED
+  delayMicroseconds(280);
+  uint16_t voMeasured = analogRead(DUST_SENSOR_ANALOG_PIN);// Get DUST value
+  delayMicroseconds(40);
+  digitalWrite(DUST_SENSOR_DIGITAL_PIN,HIGH); // turn the LED off
   // 0 - 5V mapped to 0 - 1023 integer values
   // recover voltage
-  calcVoltage = voMeasured * (5.0 / 1024.0);
+  calcVoltage = voMeasured * (5.0 / 1024.0);  // Adapt to devic voltage
   // linear eqaution taken from http://www.howmuchsnow.com/arduino/airquality/
   // Chris Nafis (c) 2012
-  dustDensity = (0.17 * calcVoltage - 0.1)*1000;
+//  dustDensity = (0.17 * calcVoltage - 0.1)*1000;
+  dustDensity = (0.17 * calcVoltage - 0.1);
   Serial.print("Dust   :raw   : ");
   Serial.print(voMeasured);
   Serial.print("    Voltage: ");
