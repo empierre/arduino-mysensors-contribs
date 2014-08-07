@@ -48,9 +48,9 @@
 #define         READ_SAMPLE_TIMES            (5)     //define the time interal(in milisecond) between each samples in 
 /**********************Application Related Macros**********************************/
 #define         GAS_CL2                      (0)
-#define         GAS_O3                       (1)
+#define         GAS_O3                       (1)  // for AIQ
 #define         GAS_CO2                      (2)
-#define         GAS_CO                       (3)
+#define         GAS_CO                       (3)  // for AIQ
 #define         GAS_NH4                      (4)
 #define         GAS_CO2H50H                  (5)
 #define         GAS_CH3                      (6)
@@ -60,9 +60,11 @@
 #define         GAS_C4H10                   (10)
 #define         GAS_LPG                     (11)
 #define         GAS_Smoke                   (12)
-#define         GAS_CO_sec                  (13)
+#define         GAS_CO_sec                  (13)  // for AIQ
 #define         GAS_LPG_sec                 (14)
 #define         GAS_CH4                     (15)
+#define         GAS_NO2                     (16)  // for AIQ
+#define         GAS_SO2                     (17)  // for AIQ
 /*****************************Globals***********************************************/
 float           COCurve[2]      =  {37793.94418, -3.24294658};  //MQ2
 float           H2Curve[2]      =  {957.1355042, -2.07442628};  //MQ2
@@ -108,7 +110,7 @@ float calcVoltage = 0;
 float dustDensity = 0;
 
 Sleep sleep;
-Sensor gw;
+Sensor gw(48,49);  // Arduino Mega initialization
 
 #define CHILD_ID_MQ2 0
 #define CHILD_ID_MQ6 1
@@ -118,7 +120,14 @@ Sensor gw;
 
 void setup()  
 { 
-Serial.begin(115200);
+  //Serial.begin(115200);
+  gw.begin();
+
+  // Send the sketch version information to the gateway and Controller
+  gw.sendSketchInfo("AIQ Sensor", "1.0");
+
+  // Register all sensors to gateway (they will be created as child devices)
+  gw.sendSensorPresentation(CHILD_ID_AIQ, 22);  
 
   Serial.print("Ro -->\n    MQ2:"); 
   Ro0 = MQCalibration(MQ2_SENSOR);
@@ -173,6 +182,7 @@ void loop()
       Serial.print("    ");   
    Serial.print("O3    :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ131_SENSOR),Ro2,GAS_O3,MQ131_SENSOR) );
+      gw.sendVariable(CHILD_ID_AIQ,42, (int)ceil(MQGetGasPercentage(MQRead(MQ131_SENSOR),Ro2,GAS_O3,MQ131_SENSOR)));
    Serial.print( "ppm" );
    Serial.print("\n");
    //TGS2600 H2 C2H5OH C4H10   
@@ -180,7 +190,7 @@ void loop()
    Serial.print("H2    :"); 
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_H2,TGS2600_SENSOR) );
    Serial.print( "ppm" );
-      Serial.print(" ");   
+      Serial.print("  ");   
    Serial.print("C2H5OH:"); 
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_C2H5OH,TGS2600_SENSOR) );
    Serial.print( "ppm" );
@@ -198,6 +208,7 @@ void loop()
    Serial.print("CO    :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CO,MQ135_SENSOR) );
    Serial.print( "ppm" );      
+   gw.sendVariable(CHILD_ID_AIQ,41, (int)ceil(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CO,MQ135_SENSOR)));
       Serial.print("     ");   
    Serial.print("CH3   :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CH3,MQ135_SENSOR) );
@@ -218,7 +229,7 @@ void loop()
   calcVoltage = voMeasured * (5.0 / 1024.0);  // Adapt to devic voltage
   // linear eqaution taken from http://www.howmuchsnow.com/arduino/airquality/
   // Chris Nafis (c) 2012
-//  dustDensity = (0.17 * calcVoltage - 0.1)*1000;
+  //  dustDensity = (0.17 * calcVoltage - 0.1)*1000;
   dustDensity = (0.17 * calcVoltage - 0.1);
   Serial.print("Dust   :raw   : ");
   Serial.print(voMeasured);
@@ -227,12 +238,15 @@ void loop()
   Serial.print(" - Dust Density: ");
   Serial.println(dustDensity); // unit: ug/m3  
   Serial.print("\n");  
+  
+  gw.sendVariable(CHILD_ID_AIQ,40, (int)ceil(dustDensity));
    
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
-  delay(10000); //delay to allow serial to fully print before sleep
-  //sleep.pwrDownMode(); //set sleep mode
-  //sleep.sleepDelay(SLEEP_TIME * 1000); //sleep for: sleepTime 
+  delay(1000); //delay to allow serial to fully print before sleep
+  gw.powerDown();
+  sleep.pwrDownMode(); //set sleep mode
+  sleep.sleepDelay(SLEEP_TIME * 1000); //sleep for: sleepTime 
 }
 
 
