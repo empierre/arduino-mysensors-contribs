@@ -1,30 +1,21 @@
-/*
-  Arduino Pressure sensor
-
- Contribution: epierre
-
-*/
-
-#include <MySensor.h>  
+#include <Sleep_n0m1.h>
 #include <SPI.h>
+#include <EEPROM.h>  
+#include <RF24.h>
+#include <Sensor.h>  
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
 
-#define CHILD_ID_PRESSURE 0
-#define CHILD_ID_TEMP 1
-#define CHILD_ID_FORECAST 2
-#define PRESSURE_SENSOR_ANALOG_PIN 0
+#define LIGHT_SENSOR_ANALOG_PIN 0
 unsigned long SLEEP_TIME = 60; // Sleep time between reads (in seconds)
 
 Adafruit_BMP085 bmp = Adafruit_BMP085();      // Digital Pressure Sensor 
-MySensor gw;
-MyMessage pressureMsg(CHILD_ID_PRESSURE, V_PRESSURE);
-MyMessage tempMsg(CHILD_ID_TEMP, V_TEMP);
-MyMessage forecastMsg(CHILD_ID_FORECAST, V_FORECAST);
+Sensor gw;
 
 float lastPressure = -1;
 float lastTemp = -1;
 int lastForecast = -1;
+Sleep sleep;
 char *weather[]={"stable","sunny","cloudy","unstable","thunderstorm","unknown"};
 int minutes;
 float pressureSamples[180];
@@ -46,11 +37,9 @@ void setup() {
   }
 
   // Register sensors to gw (they will be created as child devices)
- 
-  gw.present(CHILD_ID_PRESSURE, S_BARO);
-  gw.present(CHILD_ID_TEMP, S_TEMP);
-  metric = gw.getConfig().isMetric;
-
+  gw.sendSensorPresentation(0, S_BARO);
+  gw.sendSensorPresentation(1, S_TEMP);
+  metric = gw.isMetricSystem();
 }
 
 
@@ -78,17 +67,17 @@ void loop() {
 
 
   if (temperature != lastTemp) {
-    gw.send(tempMsg.set(temperature,1));
+    gw.sendVariable(1, V_TEMP, temperature,1);
     lastTemp = temperature;
   }
 
   if (pressure != lastPressure) {
-    gw.send(pressureMsg.set(pressure,0));
+    gw.sendVariable(0, V_PRESSURE, pressure, 0);
     lastPressure = pressure;
   }
 
   if (forecast != lastForecast) {
-    gw.send(forecastMsg.set(weather[forecast]));
+    gw.sendVariable(0, V_FORECAST, weather[forecast]);
     lastForecast = forecast;
   }
   
@@ -106,8 +95,9 @@ void loop() {
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
   delay(1000); //delay to allow serial to fully print before sleep
-
-  gw.sleep(SLEEP_TIME * 1000); // sleep to conserve power
+  gw.powerDown();
+  sleep.pwrDownMode(); //set sleep mode
+  sleep.sleepDelay(SLEEP_TIME * 1000); // sleep to conserve power
 }
 
 int sample(float pressure) {

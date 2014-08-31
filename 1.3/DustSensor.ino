@@ -1,38 +1,29 @@
 /*
-  Arduino Dust Sensort
+  Vera Arduino Dust Sensort
 
   connect the sensor as follows :
 
-  *Please note both analogic and digital must be wired at the same time*
-
-  Analogic connector: 
-    VCC       >>> 5V
-    A         >>> A1
-    GND       >>> GND
-    
-  Digital connector: 
-    VCC       >>> 5V
-    D         >>> D1
-    GND       >>> GND
+  VCC       >>> 5V
+  A         >>> A0
+  GND       >>> GND
 
   Based on: http://www.dfrobot.com/wiki/index.php/Sharp_GP2Y1010AU 
   Authors: Cyrille Médard de Chardon (serialC), Christophe Trefois (Trefex)
   Contribution: epierre
-  COnverted to 1.4 by Henrik Ekblad
-  
-  The dust sensor used (see purchase guide for latest link):
-  http://rover.ebay.com/rover/1/711-53200-19255-0/1?icep_ff3=2&pub=5575069610&toolid=10001&campid=5337433187&customid=&icep_item=171259125886&ipn=psmain&icep_vectorid=229466&kwid=902099&mtid=824&kw=lg
-  
+ 
 */
 
-#include <MySensor.h>  
+#include <Sleep_n0m1.h>
 #include <SPI.h>
+#include <RF24.h>
+#include <EEPROM.h>  
+#include <Sensor.h>  
+#include <Wire.h>
 
 #define CHILD_ID_DUST 0
 #define DUST_SENSOR_ANALOG_PIN 1
-#define DUST_SENSOR_DIGITAL_PIN 1
 
-unsigned long SLEEP_TIME = 30*1000; // Sleep time between reads (in milliseconds)
+unsigned long SLEEP_TIME = 30; // Sleep time between reads (in seconds)
 //VARIABLES
 int val = 0;           // variable to store the value coming from the sensor
 float valDUST =0.0;
@@ -44,31 +35,25 @@ float voMeasured = 0;
 float calcVoltage = 0;
 float dustDensity = 0;
 
-MySensor gw;
-MyMessage dustMsg(CHILD_ID_DUST, V_DUST_LEVEL);
+Sensor gw;
+Sleep sleep;
 
 void setup()  
 {
   gw.begin();
 
   // Send the sketch version information to the gateway and Controller
-  gw.sendSketchInfo("Dust Sensor", "1.2");
+  gw.sendSketchInfo("Dust Sensor", "1.0");
 
   // Register all sensors to gateway (they will be created as child devices)
-  gw.present(CHILD_ID_DUST, S_DUST);  
-  
-  pinMode(DUST_SENSOR_DIGITAL_PIN,OUTPUT); //light on dust sensor led
+  gw.sendSensorPresentation(CHILD_ID_DUST, 23);  
    
 }
 
 void loop()      
 {    
-  digitalWrite(DUST_SENSOR_DIGITAL_PIN,LOW); // power on the LED
-  delayMicroseconds(280);
   uint16_t voMeasured = analogRead(DUST_SENSOR_ANALOG_PIN);// Get DUST value
-  delayMicroseconds(40);
-  digitalWrite(DUST_SENSOR_DIGITAL_PIN,HIGH); // turn the LED off
-  
+
   // 0 - 5V mapped to 0 - 1023 integer values
   // recover voltage
   calcVoltage = voMeasured * (5.0 / 1024.0);
@@ -87,9 +72,14 @@ void loop()
   Serial.println(dustDensity); // unit: ug/m3
  
   if (ceil(dustDensity) != lastDUST) {
-      gw.send(dustMsg.set((int)ceil(dustDensity)));
+      gw.sendVariable(CHILD_ID_DUST, V_VAR1, (int)ceil(dustDensity));
       lastDUST = ceil(dustDensity);
   }
  
-  gw.sleep(SLEEP_TIME);
+  // Power down the radio.  Note that the radio will get powered back up
+  // on the next write() call.
+  delay(1000); //delay to allow serial to fully print before sleep
+  gw.powerDown();
+  sleep.pwrDownMode(); //set sleep mode
+  sleep.sleepDelay(SLEEP_TIME * 1000); //sleep for: sleepTime
 }

@@ -1,5 +1,5 @@
 /*
-  Arduino Sound
+  Vera Arduino Sound
 
   connect the sensor as follows :
 
@@ -10,11 +10,13 @@
   Contribution: epierre
   based on :https://www.inkling.com/read/arduino-cookbook-michael-margolis-2nd/chapter-6/recipe-6-7
  
-
-TBD: http://davidegironi.blogspot.fr/2014/02/a-simple-sound-pressure-level-meter-spl.html
 */
-#include <MySensor.h>  
-#include <SPI.h>  
+TBD: http://davidegironi.blogspot.fr/2014/02/a-simple-sound-pressure-level-meter-spl.html
+#include <Sleep_n0m1.h>
+#include <SPI.h>
+#include <RF24.h>
+#include <EEPROM.h>  
+#include <Sensor.h>  
 #include <Wire.h> 
 
 #define CHILD_ID_SND 0
@@ -34,8 +36,8 @@ const int averagedOver= 16;     //how quickly new values affect running average
 
 const int threshold=400;        //at what level the light turns on
 
-MySensor gw;
-MyMessage soundMsg(CHILD_ID_SND, V_VOLUME);
+Sensor gw;
+Sleep sleep;
 int lastSND;
 
 void setup()  
@@ -46,7 +48,7 @@ void setup()
   gw.sendSketchInfo("Sound Sensor", "1.0");
 
   // Register all sensors to gateway (they will be created as child devices)
-  gw.present(CHILD_ID_SND, S_CUSTOM);
+  gw.sendSensorPresentation(CHILD_ID_SND, 22);
 
    pinMode(SND_SENSOR_ANALOG_PIN, INPUT);
    pinMode(ledPin, OUTPUT);
@@ -73,12 +75,15 @@ void loop()
   Serial.println(runningAverage);        //print the value so you can check it
 
   if (runningAverage != lastSND) {
-      gw.send(soundMsg.set(runningAverage));
+      //gw.sendVariable(CHILD_ID_SND, 37, runningAverage);
+      gw.sendVariable(CHILD_ID_SND, 37, sample);
       lastSND = runningAverage;
   }
   
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
   delay(1000); //delay to allow serial to fully print before sleep
-  gw.sleep(SLEEP_TIME * 1000); //sleep for: sleepTime 
+  gw.powerDown();
+  sleep.pwrDownMode(); //set sleep mode
+  sleep.sleepDelay(SLEEP_TIME * 1000); //sleep for: sleepTime 
 }

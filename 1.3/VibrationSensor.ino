@@ -12,8 +12,11 @@
  
 */
 
-#include <MySensor.h>
+#include <Sleep_n0m1.h>
 #include <SPI.h>
+#include <RF24.h>
+#include <EEPROM.h>  
+#include <Sensor.h>  
 #include <Wire.h>
 
 #define CHILD_ID_VIBRATION 0
@@ -27,9 +30,8 @@ float valVIBRATION =0.0;
 float lastVIBRATION =0.0;
 unsigned char state = 0;
 
-MySensor gw;
-MyMessage vibrationMsg(CHILD_ID_VIBRATION, V_VAR1);
-
+Sensor gw;
+Sleep sleep;
 
 void setup()  
 {
@@ -39,8 +41,7 @@ void setup()
   gw.sendSketchInfo("VIBRATION Sensor", "1.0");
 
   // Register all sensors to gateway (they will be created as child devices)
-  gw.present(CHILD_ID_VIBRATION, S_CUSTOM);
-
+  gw.sendSensorPresentation(CHILD_ID_VIBRATION, 23);  
   
   pinMode(VIBRATION_SENSOR_DIGITAL_PIN, INPUT);
   attachInterrupt(1, blink, FALLING);// Trigger the blink function when the falling edge is detected
@@ -51,7 +52,7 @@ void loop()
 {    
   
   if(state>=40){ // basically below 40 so ignire basic level
-        gw.send(vibrationMsg.set(int(state)));
+        gw.sendVariable(CHILD_ID_VIBRATION, V_VAR1, (int(state)));
         state = 0;  
         digitalWrite(SensorLED,HIGH);
    }    else {
@@ -63,8 +64,9 @@ void loop()
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
   delay(1000); //delay to allow serial to fully print before sleep
-
-  gw.sleep(SLEEP_TIME * 1000); //sleep for: sleepTime
+  gw.powerDown();
+  sleep.pwrDownMode(); //set sleep mode
+  sleep.sleepDelay(SLEEP_TIME * 1000); //sleep for: sleepTime
 }
 
 void blink()//Interrupts function
