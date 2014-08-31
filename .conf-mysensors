@@ -1,0 +1,9 @@
+[Internal]
+hardware_domo=29
+domo_ip=192.168.0.24
+domo_port=8080
+domo_login=
+domo_pass=
+usb_port=/dev/ttyUSB0
+gw_ip=192.168.0.28
+gw_port=5001
