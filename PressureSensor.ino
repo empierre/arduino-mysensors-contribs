@@ -3,6 +3,8 @@
 
  Contribution: epierre
 
+  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+
 */
 
 #include <MySensor.h>  

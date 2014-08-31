@@ -9,9 +9,16 @@
   
   Contribution: epierre
   based on :https://www.inkling.com/read/arduino-cookbook-michael-margolis-2nd/chapter-6/recipe-6-7
+  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+
  
 
 TBD: http://davidegironi.blogspot.fr/2014/02/a-simple-sound-pressure-level-meter-spl.html
+
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+
 */
 #include <MySensor.h>  
 #include <SPI.h>  

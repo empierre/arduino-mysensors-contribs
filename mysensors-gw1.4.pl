@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+#  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
 use warnings;
 use strict;
 use POSIX qw(strftime);

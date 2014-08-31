@@ -19,6 +19,8 @@
   Authors: Cyrille Médard de Chardon (serialC), Christophe Trefois (Trefex)
   Contribution: epierre
   COnverted to 1.4 by Henrik Ekblad
+  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+
   
   The dust sensor used (see purchase guide for latest link):
   http://rover.ebay.com/rover/1/711-53200-19255-0/1?icep_ff3=2&pub=5575069610&toolid=10001&campid=5337433187&customid=&icep_item=171259125886&ipn=psmain&icep_vectorid=229466&kwid=902099&mtid=824&kw=lg
