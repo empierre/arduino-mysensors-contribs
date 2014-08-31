@@ -9,6 +9,8 @@
 // to calculate/report flow.
 //
 // Sensor on pin 3
+//  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+
 
 
 #include <Relay.h>

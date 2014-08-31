@@ -5,6 +5,8 @@
 #include <Sensor.h>  
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
+//  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+
 
 #define LIGHT_SENSOR_ANALOG_PIN 0
 unsigned long SLEEP_TIME = 60; // Sleep time between reads (in seconds)

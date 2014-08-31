@@ -10,6 +10,8 @@
   Based on: http://www.dfrobot.com/wiki/index.php/Sharp_GP2Y1010AU 
   Authors: Cyrille Médard de Chardon (serialC), Christophe Trefois (Trefex)
   Contribution: epierre
+  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+
  
 */
 
