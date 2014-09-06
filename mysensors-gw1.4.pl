@@ -67,7 +67,7 @@ while(1) {
                $_=~ s/\t/\=/;
                $_=~ s/\r//;
                $_=~ s/\n//;
-                my ($radioId,$childId,$messageType,$routing_id,$subType,$payload) = split(";", $_);
+                my ($radioId,$childId,$messageType,$ack,$subType,$payload) = split(";", $_);
                 if (! $childId) {$childId="0";}
                 if (! $messageType) {$messageType="0";}
                 if (! $subType) {$subType="0";}
@@ -78,13 +78,13 @@ while(1) {
                 #$value = $value/1000 if $radioId =~ /I/g;
                 my $dt = DateTime->now(time_zone=>'local');
                 my $date=join ' ', $dt->ymd, $dt->hms;
-                print "$date $radioId $childId $messageType $subType $payload\n";
+                print "$date $radioId $childId $messageType $ack $subType $payload\n";
                 if ($radioId>=0) {
-                        print FIC "$date $radioId $childId $messageType $subType $payload\n";
+                        print FIC "$date $radioId $childId $messageType $ack $subType $payload\n";
                 }
                 if (($messageType==4)&&($subType==5)) {
 			#Answer the node ID
-                        my $msg = "$radioId;$childId;4;5;8\n";
+                        my $msg = "$radioId;$childId;4;0;5;8\n";
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
                         print "$date W ($co) : $msg \n";
@@ -96,9 +96,9 @@ while(1) {
 			my $msg;
 			if ($radioId==2) {
 				my $val=$sensor_tab{$radioId}->{$subType}||36890;
-	                        $msg = "$radioId;$childId;3;24;$val\n";
+	                        $msg = "$radioId;$childId;0;3;24;$val\n";
 			} else {
-	                        $msg = "$radioId;$childId;3;24;10\n";
+	                        $msg = "$radioId;$childId;0;3;24;10\n";
 			}
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
@@ -108,7 +108,7 @@ while(1) {
 		}
                 if (($messageType==4)&&($subType==13)) {
 			#Answer we are Metric
-                        my $msg = "$radioId;$childId;4;13;M\n";
+                        my $msg = "$radioId;$childId;0;4;13;M\n";
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
                         print "$date W ($co) : $msg \n";
@@ -148,15 +148,30 @@ while(1) {
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
 			if ($radioId==8) {
-				if ($subType==40) {
+				if ($subType==45) {
+					#AqPM10
 					print "sending $payload to DZ 208 $payload\n";
 					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
-				} elsif ($subType==41) {
-					print "sending $payload to DZ 209 $payload\n";
-					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
-				} elsif ($subType==42) {
+				} elsif ($subType==44) {
+					#AqCO
 					print "sending $payload to DZ 209 $payload\n";
 					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=209&nvalue=$payload" &`;
+				} elsif ($subType==42) {
+					#AqO3
+					print "sending $payload to DZ 210 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=210&nvalue=$payload" &`;
+				} elsif ($subType==46) {
+					#AqSO2
+					print "sending $payload to DZ 222 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=222&nvalue=$payload" &`;
+				} elsif ($subType==40) {
+					#AqSmoke
+					print "sending $payload to DZ 223 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=223&nvalue=$payload" &`;
+				} elsif ($subType==41) {
+					#AqLPG
+					print "sending $payload to DZ 224 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=224&nvalue=$payload" &`;
 				}
 			}
 		}

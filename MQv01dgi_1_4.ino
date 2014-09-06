@@ -25,6 +25,7 @@
 #define MQ131_SENSOR 2
 #define TGS2600_SENSOR 3
 #define MQ135_SENSOR 4
+#define S2SH12_SENSOR 15
 #define DUST_SENSOR_ANALOG_PIN  11
 #define DUST_SENSOR_DIGITAL_PIN 13
 /************************Hardware Related Macros************************************/
@@ -92,6 +93,7 @@ float Ro1 = 1.755;    //25.76 this has to be tuned 10K Ohm
 float Ro2 = 2.501;    //2.24 this has to be tuned 10K Ohm
 float Ro3 = 2.511;    //0.05 this has to be tuned 10K Ohm
 float Ro4 = 2.511;    //2.51 this has to be tuned 10K Ohm
+float Ro5 = 2.51;    //2.51 this has to be tuned 10K Ohm
 int val = 0;          // variable to store the value coming from the sensor
 float valAIQ0 =0.0;
 float lastAIQ0 =0.0;
@@ -103,8 +105,11 @@ float valAIQ3 =0.0;
 float lastAIQ3 =0.0;
 float valAIQ4 =0.0;
 float lastAIQ4 =0.0;
+float valAIQ5 =0.0;
+float lastAIQ5 =0.0;
 float calcVoltage = 0;
 float dustDensity = 0;
+float a=0;
 
 #define CHILD_ID_MQ2 0
 #define CHILD_ID_MQ6 1
@@ -112,15 +117,16 @@ float dustDensity = 0;
 #define CHILD_ID_TGS2600 3
 #define CHILD_ID_MQ135 4
 #define CHILD_ID_DUST 5
+#define CHILD_ID_2SH12 6
 
 MySensor gw(48,49);  // Arduino Mega initialization
-MyMessage msg_dust(CHILD_ID_DUST, 45);
-MyMessage msg_mq2(CHILD_ID_MQ2, 40);
-MyMessage msg_mq6(CHILD_ID_MQ6, 41);
-MyMessage msg_mq131(CHILD_ID_MQ131, 42);
-MyMessage msg_tgs2600(CHILD_ID_TGS2600, 43);
-MyMessage msg_mq135(CHILD_ID_MQ135, 44);
-
+MyMessage msg_dust(CHILD_ID_DUST, 45);      //AqPM10
+MyMessage msg_mq2(CHILD_ID_MQ2, 40);        //Smoke
+MyMessage msg_mq6(CHILD_ID_MQ6, 41);        //LPG
+MyMessage msg_mq131(CHILD_ID_MQ131, 42);    //Aq03
+MyMessage msg_tgs2600(CHILD_ID_TGS2600, 43);//
+MyMessage msg_mq135(CHILD_ID_MQ135, 44);    //AqCO
+MyMessage msg_2sh12(CHILD_ID_2SH12, 46);    //AqSO2
 void setup()  
 { 
   gw.begin();
@@ -135,6 +141,7 @@ void setup()
   gw.present(CHILD_ID_MQ131, S_AIR_QUALITY);  
   gw.present(CHILD_ID_TGS2600, S_AIR_QUALITY);  
   gw.present(CHILD_ID_MQ135, S_AIR_QUALITY);  
+  gw.present(CHILD_ID_2SH12, S_AIR_QUALITY);  
   
 
   Serial.print("Ro -->\n    MQ2:"); 
@@ -150,8 +157,11 @@ void setup()
   Ro3 = MQCalibration(TGS2600_SENSOR);
   Serial.println(Ro3);
   Serial.print("    MQ135:"); 
-  Ro3 = MQCalibration(MQ135_SENSOR);
+  Ro4 = MQCalibration(MQ135_SENSOR);
   Serial.println(Ro4);
+  Serial.print("    2SH12:"); 
+  Ro5 = MQCalibration(S2SH12_SENSOR);
+  Serial.println(Ro5);
  pinMode(DUST_SENSOR_DIGITAL_PIN,OUTPUT); //light on led
 }
 
@@ -170,12 +180,14 @@ void loop()
    Serial.print("    ");   
    Serial.print("SMOKE :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro0,GAS_Smoke,MQ2_SENSOR) );
+            gw.send(msg_mq2.set((int)ceil(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro2,GAS_Smoke,MQ2_SENSOR))));
    Serial.print( "ppm" );
-   Serial.print("\n");
+   Serial.print("\n");   
    //MQ6
    Serial.print("MQ6    :"); 
    Serial.print("LPG   :");
    Serial.print(MQGetGasPercentage(MQRead(MQ6_SENSOR),Ro1,GAS_LPG_sec,MQ6_SENSOR) );
+            gw.send(msg_mq6.set((int)ceil(MQGetGasPercentage(MQRead(MQ6_SENSOR),Ro2,GAS_LPG,MQ6_SENSOR))));
    Serial.print( "ppm" );
    Serial.print("    "); 
    Serial.print("CH4   :");
@@ -197,6 +209,7 @@ void loop()
    Serial.print("TGS2600:"); 
    Serial.print("H2    :"); 
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_H2,TGS2600_SENSOR) );
+         gw.send(msg_tgs2600.set((int)ceil(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro2,GAS_H2,TGS2600_SENSOR))));
    Serial.print( "ppm" );
       Serial.print("  ");   
    Serial.print("C2H5OH:"); 
@@ -226,6 +239,14 @@ void loop()
    Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_NH4,MQ135_SENSOR) );
    Serial.print( "ppm" );      
    Serial.print("\n");  
+ //2SH12
+   Serial.print("SO2    :"); 
+   a=MQRead(S2SH12_SENSOR);
+   Serial.print(a);   Serial.print( "raw " );      
+   Serial.print(a-Ro5);
+   Serial.print( "ohm" );      
+   Serial.print("\n");  
+    gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR)-Ro5)));
 
   digitalWrite(DUST_SENSOR_DIGITAL_PIN,LOW); // power on the LED
   delayMicroseconds(280);
@@ -251,10 +272,10 @@ void loop()
    
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
-  delay(1000); //delay to allow serial to fully print before sleep
-  gw.powerDown();
+  delay(SLEEP_TIME * 1000); //delay to allow serial to fully print before sleep
+  //gw.powerDown();
   //sleep.pwrDownMode(); //set sleep mode
-  gw.sleep(SLEEP_TIME * 1000); //sleep for: sleepTime 
+  //gw.sleep(SLEEP_TIME * 1000); //sleep for: sleepTime 
 }
 
 
@@ -374,8 +395,12 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
     } else if ( gas_id == GAS_H2 ) {
        return MQGetPercentage(rs_ro_ratio,ro,H2_terCurve);  //TGS2600
     }    
-  }
- 
+  } else if (sensor_id == S2SH12_SENSOR) {
+    if ( gas_id == GAS_SO2 ) {
+      //return MQGetPercentage(rs_ro_ratio,ro,C2H5OHCurve);  //TGS2600
+      return rs_ro_ratio;
+    }    
+  } 
   return 0;
 }
  
