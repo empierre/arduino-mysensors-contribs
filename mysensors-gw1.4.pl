@@ -82,9 +82,9 @@ while(1) {
                 if ($radioId>=0) {
                         print FIC "$date $radioId $childId $messageType $ack $subType $payload\n";
                 }
-                if (($messageType==4)&&($subType==5)) {
+                if (($messageType==3)&&($subType==3)) {
 			#Answer the node ID
-                        my $msg = "$radioId;$childId;4;0;5;8\n";
+                        my $msg = "$radioId;$childId;3;0;4;9\n";
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
                         print "$date W ($co) : $msg \n";
@@ -96,9 +96,9 @@ while(1) {
 			my $msg;
 			if ($radioId==2) {
 				my $val=$sensor_tab{$radioId}->{$subType}||36890;
-	                        $msg = "$radioId;$childId;0;3;24;$val\n";
+	                        $msg = "$radioId;$childId;3;0;24;$val\n";
 			} else {
-	                        $msg = "$radioId;$childId;0;3;24;10\n";
+	                        $msg = "$radioId;$childId;3;0;24;10\n";
 			}
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
@@ -106,9 +106,9 @@ while(1) {
                         print FIC "$date W : $msg \n";
                         $ob->write_drain;
 		}
-                if (($messageType==4)&&($subType==13)) {
+                if (($messageType==4)&&($subType==6)) {
 			#Answer we are Metric
-                        my $msg = "$radioId;$childId;0;4;13;M\n";
+                        my $msg = "$radioId;$childId;4;0;6;M\n";
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
                         print "$date W ($co) : $msg \n";
@@ -185,7 +185,7 @@ while(1) {
 			}
 		}
  		if (($messageType==1)&&($subType==35)) {
-			# Read the Temp value
+			# save the Water volume
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
 			my $hum=$sensor_tab{$radioId}->{1}||0;
