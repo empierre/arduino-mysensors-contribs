@@ -70,6 +70,7 @@ while(1) {
                 my ($radioId,$childId,$messageType,$ack,$subType,$payload) = split(";", $_);
                 if (! $childId) {$childId="0";}
                 if (! $messageType) {$messageType="0";}
+                if (! $ack) {$ack="0";}
                 if (! $subType) {$subType="0";}
                 if (! $payload) {$payload="0";}
                 next unless ($radioId);
@@ -84,7 +85,7 @@ while(1) {
                 }
                 if (($messageType==3)&&($subType==3)) {
 			#Answer the node ID
-                        my $msg = "$radioId;$childId;3;0;4;9\n";
+                        my $msg = "$radioId;$childId;3;0;4;10\n";
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
                         print "$date W ($co) : $msg \n";
