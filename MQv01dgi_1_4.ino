@@ -123,7 +123,7 @@ MySensor gw(48,49);  // Arduino Mega initialization
 MyMessage msg_dust(CHILD_ID_DUST, 45);      //AqPM10
 MyMessage msg_mq2(CHILD_ID_MQ2, 40);        //Smoke
 MyMessage msg_mq6(CHILD_ID_MQ6, 41);        //LPG
-MyMessage msg_mq131(CHILD_ID_MQ131, 42);    //Aq03
+MyMessage msg_mq131(CHILD_ID_MQ131, 42);    //Aq03 CL2
 MyMessage msg_tgs2600(CHILD_ID_TGS2600, 43);//
 MyMessage msg_mq135(CHILD_ID_MQ135, 44);    //AqCO
 MyMessage msg_2sh12(CHILD_ID_2SH12, 46);    //AqSO2

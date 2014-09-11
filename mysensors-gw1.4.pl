@@ -116,6 +116,14 @@ while(1) {
                         print FIC "$date W : $msg \n";
                         $ob->write_drain;
 		}
+                if (($messageType==1)&&($subType==16)) {
+			# Read the Leaf Wetness
+			$sensor_tab{$radioId}->{$subType}=$payload;
+			&update_or_insert($radioId,$subType,$payload);
+			print "sending to DZ 225 $payload\n";
+			`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=225&svalue=$payload" &`;
+
+		}
                 if (($messageType==1)&&($subType==0)) {
 			# Read the Temp value
 			$sensor_tab{$radioId}->{$subType}=$payload;
