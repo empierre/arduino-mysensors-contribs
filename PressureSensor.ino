@@ -1,9 +1,12 @@
 /*
-  Arduino Pressure sensor
+  Arduino Pressure sensor based on BMP085
 
  Contribution: epierre
-
-  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+ 
+ G      GND
+ V      VCC 5V
+ SCL    A4
+ SDA    A5
 
 */
 

@@ -1,12 +1,12 @@
 /*
   Vera Arduino Multiple Air Quality Sensors
 
-  connect the sensor as follows :
+  connect the sensor as follows when standalone:
 
   A H A   >>> 5V
   B	  >>> A0
   H       >>> GND
-  B       >>> 10K ohm >>> GND
+  B       >>> 10K/20K ohm >>> GND
   
   Contribution: epierre
   Based on David Gironi http://davidegironi.blogspot.fr/2014/01/cheap-co2-meter-using-mq135-sensor-with.html
@@ -18,6 +18,8 @@
 #include <SPI.h>
 #include <MySensor.h>  
 #include <Wire.h> 
+#include <DHT.h>  
+#include <Adafruit_BMP085.h>
 
 #define CHILD_ID_AIQ 0
 #define MQ2_SENSOR 0
@@ -28,6 +30,8 @@
 #define S2SH12_SENSOR 15
 #define DUST_SENSOR_ANALOG_PIN  11
 #define DUST_SENSOR_DIGITAL_PIN 13
+#define HUMIDITY_SENSOR_DIGITAL_PIN 6
+#define PRESSURE_SENSOR_ANALOG_PIN 14
 /************************Hardware Related Macros************************************/
 #define 	MQ_SENSOR                    (0)  //define which analog input channel you are going to use
 #define         RL_VALUE                     (5)     //define the load resistance on the board, in kilo ohms
@@ -85,15 +89,15 @@ float           H2_terCurve[2]  =  {0.3417050674, -2.887154835}; //TGS2600
 float           Ro              =  10;                 //Ro is initialized to 10 kilo ohms
 
 
-unsigned long SLEEP_TIME = 30; // Sleep time between reads (in seconds)
+unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
 //VARIABLES
 //float Ro = 10000.0; // this has to be tuned 10K Ohm
-float Ro0 = 4.340;    //3.83 this has to be tuned 10K Ohm
-float Ro1 = 1.755;    //25.76 this has to be tuned 10K Ohm
-float Ro2 = 2.501;    //2.24 this has to be tuned 10K Ohm
-float Ro3 = 2.511;    //0.05 this has to be tuned 10K Ohm
-float Ro4 = 2.511;    //2.51 this has to be tuned 10K Ohm
-float Ro5 = 2.51;    //2.51 this has to be tuned 10K Ohm
+float Ro0 = 4.340;    //MQ2     3.83 this has to be tuned 10K Ohm
+float Ro1 = 1.755;    //MQ6    25.76 this has to be tuned 10K Ohm
+float Ro2 = 2.501;    //MQ131   2.24 this has to be tuned 10K Ohm
+float Ro3 = 2.511;    //TGS2600 0.05 this has to be tuned 10K Ohm
+float Ro4 = 2.511;    //MQ135   2.51 this has to be tuned 10K Ohm
+float Ro5 = 2.51;     //2SH12   2.51 this has to be tuned 10K Ohm
 int val = 0;          // variable to store the value coming from the sensor
 float valAIQ0 =0.0;
 float lastAIQ0 =0.0;
@@ -109,6 +113,21 @@ float valAIQ5 =0.0;
 float lastAIQ5 =0.0;
 float calcVoltage = 0;
 float dustDensity = 0;
+boolean metric = true; 
+//DHT11
+float lastTemp;
+float lastHum;
+//BMP085
+float lastPressure = -1;
+int lastForecast = -1;
+char *weather[]={"stable","sunny","cloudy","unstable","thunderstorm","unknown"};
+int minutes;
+float pressureSamples[180];
+int minuteCount = 0;
+bool firstRound = true;
+float pressureAvg[7];
+float dP_dt;
+//test
 float a=0;
 
 #define CHILD_ID_MQ2 0
@@ -118,32 +137,53 @@ float a=0;
 #define CHILD_ID_MQ135 4
 #define CHILD_ID_DUST 5
 #define CHILD_ID_2SH12 6
+#define CHILD_ID_HUM 7
+#define CHILD_ID_TEMP 8
+#define CHILD_ID_PRESSURE 9
+#define CHILD_ID_FORECAST 10
 
+DHT dht;
+Adafruit_BMP085 bmp = Adafruit_BMP085();     // Digital Pressure Sensor 
 MySensor gw(48,49);  // Arduino Mega initialization
 MyMessage msg_dust(CHILD_ID_DUST, 45);      //AqPM10
 MyMessage msg_mq2(CHILD_ID_MQ2, 40);        //Smoke
 MyMessage msg_mq6(CHILD_ID_MQ6, 41);        //LPG
-MyMessage msg_mq131(CHILD_ID_MQ131, 42);    //Aq03 CL2
-MyMessage msg_tgs2600(CHILD_ID_TGS2600, 43);//
+MyMessage msg_mq131(CHILD_ID_MQ131, 42);    //Aq03
+MyMessage msg_tgs2600(CHILD_ID_TGS2600, 43);//AqH2
 MyMessage msg_mq135(CHILD_ID_MQ135, 44);    //AqCO
 MyMessage msg_2sh12(CHILD_ID_2SH12, 46);    //AqSO2
+MyMessage msgHum(CHILD_ID_HUM, V_HUM);
+MyMessage msgTemp(CHILD_ID_TEMP, V_TEMP);
+MyMessage pressureMsg(CHILD_ID_PRESSURE, V_PRESSURE);
+MyMessage forecastMsg(CHILD_ID_FORECAST, V_FORECAST);
+
 void setup()  
 { 
   gw.begin();
-
+  dht.setup(HUMIDITY_SENSOR_DIGITAL_PIN); 
+  if (!bmp.begin()) {
+    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+    while (1) { }
+  }
+  
   // Send the sketch version information to the gateway and Controller
   gw.sendSketchInfo("AIQ Multi Sensors", "1.0");
 
   // Register all sensors to gateway (they will be created as child devices)
-  gw.present(CHILD_ID_DUST, S_AIR_QUALITY);  
   gw.present(CHILD_ID_MQ2, S_AIR_QUALITY);  
   gw.present(CHILD_ID_MQ6, S_AIR_QUALITY);  
   gw.present(CHILD_ID_MQ131, S_AIR_QUALITY);  
   gw.present(CHILD_ID_TGS2600, S_AIR_QUALITY);  
   gw.present(CHILD_ID_MQ135, S_AIR_QUALITY);  
+  gw.present(CHILD_ID_DUST, S_AIR_QUALITY);  
   gw.present(CHILD_ID_2SH12, S_AIR_QUALITY);  
+  gw.present(CHILD_ID_HUM, S_HUM);
+  gw.present(CHILD_ID_TEMP, S_TEMP);
+  gw.present(CHILD_ID_PRESSURE, S_BARO);
   
-
+  metric = gw.getConfig().isMetric;
+  
+//  delay(50*1000); //delay to allow serial to fully print before sleep
   Serial.print("Ro -->\n    MQ2:"); 
   Ro0 = MQCalibration(MQ2_SENSOR);
   Serial.println(Ro0);
@@ -168,6 +208,49 @@ void setup()
 
 void loop()      
 {     
+   //DHT11 Temp+Hum
+  delay(dht.getMinimumSamplingPeriod());
+  float temperature = dht.getTemperature();
+  if (isnan(temperature)) {
+      Serial.println("Failed reading temperature from DHT");
+  } else if (temperature != lastTemp) {
+    lastTemp = temperature;
+    if (!metric) {
+      temperature = dht.toFahrenheit(temperature);
+    }
+    gw.send(msgTemp.set(temperature, 1));
+    Serial.print("T: ");
+    Serial.println(temperature);
+  }
+  
+  float humidity = dht.getHumidity();
+  if (isnan(humidity)) {
+      Serial.println("Failed reading humidity from DHT");
+  } else if (humidity != lastHum) {
+      lastHum = humidity;
+      gw.send(msgHum.set(humidity, 1));
+      Serial.print("H: ");
+      Serial.println(humidity);
+  }
+  
+  //BMP085 Pressure
+  float pressure = bmp.readPressure()/100;
+  float altitude = bmp.readAltitude();
+  if (!metric) {
+    // Convert to fahrenheit
+    temperature = temperature * 9.0 / 5.0 + 32.0;
+  }
+  int forecast = sample(pressure);
+  if (pressure != lastPressure) {
+    gw.send(pressureMsg.set(pressure,0));
+    lastPressure = pressure;
+  }
+
+  if (forecast != lastForecast) {
+    gw.send(forecastMsg.set(weather[forecast]));
+    lastForecast = forecast;
+  }
+  
    //MQ2 CO LPG Smoke
    Serial.print("MQ2    :"); 
    Serial.print("LPG   :"); 
@@ -196,6 +279,7 @@ void loop()
    Serial.print("\n");
    //MQ131 CL2 O3
    Serial.print("MQ131  :"); 
+      Serial.print(analogRead(MQ131_SENSOR));
    Serial.print("CL2   :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ131_SENSOR),Ro2,GAS_CL2,MQ131_SENSOR) );
    Serial.print( "ppm" );
@@ -417,3 +501,98 @@ int  MQGetPercentage(float rs_ro_ratio, float ro, float *pcurve)
 {
   return (double)(pcurve[0] * pow(((double)rs_ro_ratio/ro), pcurve[1]));
 }
+
+int sample(float pressure) {
+	// Algorithm found here
+	// http://www.freescale.com/files/sensors/doc/app_note/AN3914.pdf
+	if (minuteCount > 180)
+		minuteCount = 6;
+
+	pressureSamples[minuteCount] = pressure;
+	minuteCount++;
+
+	if (minuteCount == 5) {
+		// Avg pressure in first 5 min, value averaged from 0 to 5 min.
+		pressureAvg[0] = ((pressureSamples[1] + pressureSamples[2]
+				+ pressureSamples[3] + pressureSamples[4] + pressureSamples[5])
+				/ 5);
+	} else if (minuteCount == 35) {
+		// Avg pressure in 30 min, value averaged from 0 to 5 min.
+		pressureAvg[1] = ((pressureSamples[30] + pressureSamples[31]
+				+ pressureSamples[32] + pressureSamples[33]
+				+ pressureSamples[34]) / 5);
+		float change = (pressureAvg[1] - pressureAvg[0]);
+		if (firstRound) // first time initial 3 hour
+			dP_dt = ((65.0 / 1023.0) * 2 * change); // note this is for t = 0.5hour
+		else
+			dP_dt = (((65.0 / 1023.0) * change) / 1.5); // divide by 1.5 as this is the difference in time from 0 value.
+	} else if (minuteCount == 60) {
+		// Avg pressure at end of the hour, value averaged from 0 to 5 min.
+		pressureAvg[2] = ((pressureSamples[55] + pressureSamples[56]
+				+ pressureSamples[57] + pressureSamples[58]
+				+ pressureSamples[59]) / 5);
+		float change = (pressureAvg[2] - pressureAvg[0]);
+		if (firstRound) //first time initial 3 hour
+			dP_dt = ((65.0 / 1023.0) * change); //note this is for t = 1 hour
+		else
+			dP_dt = (((65.0 / 1023.0) * change) / 2); //divide by 2 as this is the difference in time from 0 value
+	} else if (minuteCount == 95) {
+		// Avg pressure at end of the hour, value averaged from 0 to 5 min.
+		pressureAvg[3] = ((pressureSamples[90] + pressureSamples[91]
+				+ pressureSamples[92] + pressureSamples[93]
+				+ pressureSamples[94]) / 5);
+		float change = (pressureAvg[3] - pressureAvg[0]);
+		if (firstRound) // first time initial 3 hour
+			dP_dt = (((65.0 / 1023.0) * change) / 1.5); // note this is for t = 1.5 hour
+		else
+			dP_dt = (((65.0 / 1023.0) * change) / 2.5); // divide by 2.5 as this is the difference in time from 0 value
+	} else if (minuteCount == 120) {
+		// Avg pressure at end of the hour, value averaged from 0 to 5 min.
+		pressureAvg[4] = ((pressureSamples[115] + pressureSamples[116]
+				+ pressureSamples[117] + pressureSamples[118]
+				+ pressureSamples[119]) / 5);
+		float change = (pressureAvg[4] - pressureAvg[0]);
+		if (firstRound) // first time initial 3 hour
+			dP_dt = (((65.0 / 1023.0) * change) / 2); // note this is for t = 2 hour
+		else
+			dP_dt = (((65.0 / 1023.0) * change) / 3); // divide by 3 as this is the difference in time from 0 value
+	} else if (minuteCount == 155) {
+		// Avg pressure at end of the hour, value averaged from 0 to 5 min.
+		pressureAvg[5] = ((pressureSamples[150] + pressureSamples[151]
+				+ pressureSamples[152] + pressureSamples[153]
+				+ pressureSamples[154]) / 5);
+		float change = (pressureAvg[5] - pressureAvg[0]);
+		if (firstRound) // first time initial 3 hour
+			dP_dt = (((65.0 / 1023.0) * change) / 2.5); // note this is for t = 2.5 hour
+		else
+			dP_dt = (((65.0 / 1023.0) * change) / 3.5); // divide by 3.5 as this is the difference in time from 0 value
+	} else if (minuteCount == 180) {
+		// Avg pressure at end of the hour, value averaged from 0 to 5 min.
+		pressureAvg[6] = ((pressureSamples[175] + pressureSamples[176]
+				+ pressureSamples[177] + pressureSamples[178]
+				+ pressureSamples[179]) / 5);
+		float change = (pressureAvg[6] - pressureAvg[0]);
+		if (firstRound) // first time initial 3 hour
+			dP_dt = (((65.0 / 1023.0) * change) / 3); // note this is for t = 3 hour
+		else
+			dP_dt = (((65.0 / 1023.0) * change) / 4); // divide by 4 as this is the difference in time from 0 value
+		pressureAvg[0] = pressureAvg[5]; // Equating the pressure at 0 to the pressure at 2 hour after 3 hours have past.
+		firstRound = false; // flag to let you know that this is on the past 3 hour mark. Initialized to 0 outside main loop.
+	}
+
+	if (minuteCount < 35 && firstRound) //if time is less than 35 min on the first 3 hour interval.
+		return 5; // Unknown, more time needed
+	else if (dP_dt < (-0.25))
+		return 4; // Quickly falling LP, Thunderstorm, not stable
+	else if (dP_dt > 0.25)
+		return 3; // Quickly rising HP, not stable weather
+	else if ((dP_dt > (-0.25)) && (dP_dt < (-0.05)))
+		return 2; // Slowly falling Low Pressure System, stable rainy weather
+	else if ((dP_dt > 0.05) && (dP_dt < 0.25))
+		return 1; // Slowly rising HP stable good weather
+	else if ((dP_dt > (-0.05)) && (dP_dt < 0.05))
+		return 0; // Stable weather
+	else
+		return 5; // Unknown
+}
+
