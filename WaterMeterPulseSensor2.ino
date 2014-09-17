@@ -76,17 +76,18 @@ void setup()
 
   attachInterrupt(INTERRUPT, onPulse, FALLING);
   
+  //led blinking
+  pinMode(13, OUTPUT);
 }
 
 
 void loop()     
 { 
-    gw.process();
-    currentTime = millis();
+  gw.process();
+  currentTime = millis();
 	
-     // Only send values at a maximum frequency or woken up from sleep
+    // Only send values at a maximum frequency or woken up from sleep
   bool sendTime = currentTime - lastSend > SEND_FREQUENCY;
- // if (SLEEP_MODE || currentTime - lastSend > 1000*SEND_FREQUENCY) {
   if (pcReceived && (SLEEP_MODE || sendTime)) {
     // New flow value has been calculated  
     if (!SLEEP_MODE && flow != oldflow) {
@@ -101,15 +102,9 @@ void loop()
     }
   
     // No Pulse count in 2min 
-	
-	//Serial.print("currentTime");
-	//Serial.println(currentTime);
-	//Serial.print("lastPulse");
-	//Serial.println(lastPulse);
- 
     if(currentTime - lastPulse > 120000){
-		flow = 0;
-	} 
+      flow = 0;
+    } 
   
   
     // Pulse count has changed
@@ -117,23 +112,20 @@ void loop()
       gw.send(pcMsg.set(pulseCount));                  // Send  volumevalue to gw VAR1
       double volume = ((double)pulseCount/((double)PULSE_FACTOR));     
       oldPulseCount = pulseCount;
-        //Serial.print("Pulse count:");
-        //Serial.println(pulseCount);
       if (volume != oldvolume) {
         gw.send(volumeMsg.set(volume, 3));               // Send volume value to gw
-          //Serial.print("m3:");
-          //Serial.println(volume, 3);
         oldvolume = volume;
       } 
     }
     lastSend = currentTime;
-  } else if (sendTime) {
+  } else if (sendTime && !pcReceived) {
    // No count received. Try requesting it again
     gw.request(CHILD_ID, V_VAR1);
+    lastSend=currentTime;
   }
   
   if (SLEEP_MODE) {
-    gw.sleep(SEND_FREQUENCY * 1000);                          //sleep for: sleepTime
+    gw.sleep(SEND_FREQUENCY);
   }
 }
 
@@ -157,14 +149,15 @@ void onPulse()
       // Sometimes we get interrupt on RISING,  500000 = 0.5sek debounce ( max 120 l/min)
       return;   
     }
-    
     flow = (60000000.0 /interval) / ppl;
     lastBlink = newBlink;
-	//  Serial.println(flow, 4);
   }
   if( (millis() - lastDebounce) > debounceDelay){
     pulseCount++; 
     lastDebounce = millis();
+    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(500);               // wait for a second
+    digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
   }
 }
 
