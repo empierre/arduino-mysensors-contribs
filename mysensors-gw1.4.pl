@@ -97,9 +97,9 @@ while(1) {
 			my $msg;
 			if ($radioId==2) {
 				my $val=$sensor_tab{$radioId}->{$subType}||36890;
-	                        $msg = "$radioId;$childId;3;0;24;$val\n";
+	                        $msg = "$radioId;$childId;1;0;24;$val\n";
 			} else {
-	                        $msg = "$radioId;$childId;3;0;24;10\n";
+	                        $msg = "$radioId;$childId;1;0;24;10\n";
 			}
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
@@ -121,6 +121,7 @@ while(1) {
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
 			print "sending to DZ 225 $payload\n";
+			print "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=225&svalue=$payload";
 			`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=225&svalue=$payload" &`;
 
 		}

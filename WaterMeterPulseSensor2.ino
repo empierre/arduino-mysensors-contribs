@@ -25,7 +25,7 @@ Contribution: Hek, adapted by epierre to reed water meter
 #define MAX_FLOW 40                             // Max flow (l/min) value to report. This filetrs outliers.
 #define INTERRUPT DIGITAL_INPUT_SENSOR-2        // Usually the interrupt = pin -2 (on uno/nano anyway)
 #define CHILD_ID 5                              // Id of the sensor child
-unsigned long SEND_FREQUENCY = 20;              // Minimum time between send (in seconds). We don't want to spam the gateway.
+unsigned long SEND_FREQUENCY = 20000;              // Minimum time between send (in seconds). We don't want to spam the gateway.
 
 MySensor gw;
 MyMessage flowMsg(CHILD_ID,V_FLOW);
@@ -155,9 +155,9 @@ void onPulse()
   if( (millis() - lastDebounce) > debounceDelay){
     pulseCount++; 
     lastDebounce = millis();
-    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
     delay(500);               // wait for a second
-    digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+    digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
   }
 }
 
