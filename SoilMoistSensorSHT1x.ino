@@ -3,20 +3,19 @@
 
   connect the sensor as follows :
   
-  VCC   -- Red = VCC (3-5VDC)
-  GND   -- Black = Ground
-  Pin 8 -- Yellow = Clock
-  Pin 3 -- Green =  Data.
+  VCC   -- Red            = VCC (3-5VDC)
+  GND   -- Black or Green = Ground
+  Pin 8 -- Yellow         = Clock
+  Pin 3 -- Blue           =  Data.
   
-  Contribution: epierre
-  Based on David Gironi http://davidegironi.blogspot.fr/2014/01/cheap-co2-meter-using-mq135-sensor-with.html
-
+    Contribution: epierre
+  SHT1x library V2.0 10Dec2010 : follow instructions http://playground.arduino.cc/code/Sensirion#SHT1x
   License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
  */
 
 #include <SPI.h>
 #include <MySensor.h>  
-#include "SHT1x.h"
+#include "Sensirion.h"
 
 #define DIGITAL_INPUT_SOIL_SENSOR 3   // Digital input did you attach your soil sensor.  
 #define CHILD_ID_TEMP 0   // Id of the sensor child
@@ -34,7 +33,7 @@
 // example: @ 0/50 degrees, +/- 1.2 degrees
 
  
-SHT1x th_sensor(DIGITAL_INPUT_SOIL_SENSOR, sckPin);
+Sensirion th_sensor=Sensirion(DIGITAL_INPUT_SOIL_SENSOR, sckPin);
 
 MySensor gw;
 MyMessage msgtemp(CHILD_ID_TEMP, V_TEMP);
@@ -59,12 +58,10 @@ void loop()
 {     
   float temp_c;
   float humid;
+  float dewpoint;
   // Read values from the sensor
-  humid = th_sensor.readHumidity();
-  // Since the humidity reading requires the temperature we simply
-  // retrieve the reading capture from the readHumidity() call. See the lib.
-  temp_c = th_sensor.readTemperatureC();
- 
+  th_sensor.measure(&temp_c, &humid, &dewpoint);
+
 
   if (temp_c != lastTempValue) {
     Serial.println(temp_c);

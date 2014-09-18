@@ -21,20 +21,19 @@
 #include <DHT.h>  
 #include <Adafruit_BMP085.h>
 
-#define CHILD_ID_AIQ 0
-#define MQ2_SENSOR 0
-#define MQ6_SENSOR 1
-#define MQ131_SENSOR 2
-#define TGS2600_SENSOR 3
-#define MQ135_SENSOR 4
-#define S2SH12_SENSOR 15
-#define DUST_SENSOR_ANALOG_PIN  11
-#define DUST_SENSOR_DIGITAL_PIN 13
-#define HUMIDITY_SENSOR_DIGITAL_PIN 6
-#define PRESSURE_SENSOR_ANALOG_PIN 14
+
 /************************Hardware Related Macros************************************/
-#define 	MQ_SENSOR                    (0)  //define which analog input channel you are going to use
-#define         RL_VALUE                     (5)     //define the load resistance on the board, in kilo ohms
+#define         MQ2_SENSOR                   (0)  //define which analog input channel you are going to use
+#define         MQ6_SENSOR                   (1)
+#define         MQ131_SENSOR                 (2)
+#define         TGS2600_SENSOR               (3)
+#define         MQ135_SENSOR                 (4)
+#define         S2SH12_SENSOR                (15)
+#define         DUST_SENSOR_ANALOG_PIN       (11)
+#define         DUST_SENSOR_DIGITAL_PIN      (13)
+#define         HUMIDITY_SENSOR_DIGITAL_PIN  (6)
+#define         PRESSURE_SENSOR_ANALOG_PIN   (14)
+#define         RL_VALUE                     (22000) //define the load resistance on the board, in ohms
 #define         RO_CLEAN_AIR_FACTOR          (9.83)  //RO_CLEAR_AIR_FACTOR=(Sensor resistance in clean air)/RO,
 /***********************Software Related Macros************************************/
 #define         CALIBRATION_SAMPLE_TIMES     (50)    //define how many samples you are going to take in the calibration phase
@@ -43,7 +42,7 @@
 #define         READ_SAMPLE_INTERVAL         (50)    //define how many samples you are going to take in normal operation
 #define         READ_SAMPLE_TIMES            (5)     //define the time interal(in milisecond) between each samples in 
 /***********************Software Related Macros************************************/
-#define         CALIBARAION_SAMPLE_TIMES     (50)    //define how many samples you are going to take in the calibration phase
+#define         CALIBRATION_SAMPLE_TIMES     (50)    //define how many samples you are going to take in the calibration phase
 #define         CALIBRATION_SAMPLE_INTERVAL  (500)   //define the time interal(in milisecond) between each samples in the
                                                      //cablibration phase
 #define         READ_SAMPLE_INTERVAL         (50)    //define how many samples you are going to take in normal operation
@@ -92,12 +91,12 @@ float           Ro              =  10;                 //Ro is initialized to 10
 unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
 //VARIABLES
 //float Ro = 10000.0; // this has to be tuned 10K Ohm
-float Ro0 = 4.340;    //MQ2     3.83 this has to be tuned 10K Ohm
-float Ro1 = 1.755;    //MQ6    25.76 this has to be tuned 10K Ohm
-float Ro2 = 2.501;    //MQ131   2.24 this has to be tuned 10K Ohm
-float Ro3 = 2.511;    //TGS2600 0.05 this has to be tuned 10K Ohm
-float Ro4 = 2.511;    //MQ135   2.51 this has to be tuned 10K Ohm
-float Ro5 = 2.51;     //2SH12   2.51 this has to be tuned 10K Ohm
+float Ro0 = 4340;    //MQ2     3.83 this has to be tuned 10K Ohm
+float Ro1 = 1755;    //MQ6    25.76 this has to be tuned 10K Ohm
+float Ro2 = 2501;    //MQ131   2.24 this has to be tuned 10K Ohm
+float Ro3 = 2511;    //TGS2600 0.05 this has to be tuned 10K Ohm
+float Ro4 = 2511;    //MQ135   2.51 this has to be tuned 10K Ohm
+float Ro5 = 2511;     //2SH12   2.51 this has to be tuned 10K Ohm
 int val = 0;          // variable to store the value coming from the sensor
 float valAIQ0 =0.0;
 float lastAIQ0 =0.0;
@@ -307,7 +306,7 @@ void loop()
    //MQ135  CO NH4 CH3 CO2
    Serial.print("MQ135  :"); 
    Serial.print("CO2   :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CO2,MQ135_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),68550,GAS_CO2,MQ135_SENSOR) );
    Serial.print( "ppm" );      
       Serial.print("    ");   
    Serial.print("CO    :"); 
@@ -390,11 +389,11 @@ float MQCalibration(int mq_pin)
   int i;
   float val=0;
  
-  for (i=0;i<CALIBARAION_SAMPLE_TIMES;i++) {            //take multiple samples
+  for (i=0;i<CALIBRATION_SAMPLE_TIMES;i++) {            //take multiple samples
     val += MQResistanceCalculation(analogRead(mq_pin));
     delay(CALIBRATION_SAMPLE_INTERVAL);
   }
-  val = val/CALIBARAION_SAMPLE_TIMES;                   //calculate the average value
+  val = val/CALIBRATION_SAMPLE_TIMES;                   //calculate the average value
  
   val = val/RO_CLEAN_AIR_FACTOR;                        //divided by RO_CLEAN_AIR_FACTOR yields the Ro 
                                                         //according to the chart in the datasheet 
@@ -502,6 +501,10 @@ int  MQGetPercentage(float rs_ro_ratio, float ro, float *pcurve)
   return (double)(pcurve[0] * pow(((double)rs_ro_ratio/ro), pcurve[1]));
 }
 
+/*****************************  MQGetPercentage **********************************
+Input:   pressure 
+Output:  an int containing the weather based on pressure
+************************************************************************************/ 
 int sample(float pressure) {
 	// Algorithm found here
 	// http://www.freescale.com/files/sensors/doc/app_note/AN3914.pdf
