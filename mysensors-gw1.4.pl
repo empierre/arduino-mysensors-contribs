@@ -189,7 +189,7 @@ while(1) {
 			# save a BARO
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
-			if ($radioId==4) {
+			if ($radioId==8) {
 				print "sending to DZ 198 $payload\n";
 				`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=198&svalue=$payload" &`;
 			}
