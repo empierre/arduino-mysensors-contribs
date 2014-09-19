@@ -1,5 +1,5 @@
 /*
-  Vera Arduino Multiple Air Quality Sensors
+  Arduino Multiple Air Quality Sensors
 
   connect the sensor as follows when standalone:
 
@@ -10,6 +10,12 @@
   
   Contribution: epierre
   Based on David Gironi http://davidegironi.blogspot.fr/2014/01/cheap-co2-meter-using-mq135-sensor-with.html
+  
+  Precaution:
+     The gasses detected by these gas sensors can be deadly in high concentrations. Always be careful to perform gas tests in well ventilated areas.
+ 
+  Note:
+     THESE GAS SENSOR MODULES ARE NOT DESIGNED FOR OR APPROVED FOR ANY APPLICATION INVOLVING HEALTH OR HUMAN SAFETY. THESE GAS SENSOR MODULES ARE FOR EXPERIMENTAL PURPOSES ONLY.
 
   License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
  
@@ -41,17 +47,11 @@
                                                      //cablibration phase
 #define         READ_SAMPLE_INTERVAL         (50)    //define how many samples you are going to take in normal operation
 #define         READ_SAMPLE_TIMES            (5)     //define the time interal(in milisecond) between each samples in 
-/***********************Software Related Macros************************************/
-#define         CALIBRATION_SAMPLE_TIMES     (50)    //define how many samples you are going to take in the calibration phase
-#define         CALIBRATION_SAMPLE_INTERVAL  (500)   //define the time interal(in milisecond) between each samples in the
-                                                     //cablibration phase
-#define         READ_SAMPLE_INTERVAL         (50)    //define how many samples you are going to take in normal operation
-#define         READ_SAMPLE_TIMES            (5)     //define the time interal(in milisecond) between each samples in 
 /**********************Application Related Macros**********************************/
 #define         GAS_CL2                      (0)
-#define         GAS_O3                       (1)  // for AIQ
+#define         GAS_O3                       (1)  
 #define         GAS_CO2                      (2)
-#define         GAS_CO                       (3)  // for AIQ
+#define         GAS_CO                       (3) 
 #define         GAS_NH4                      (4)
 #define         GAS_CO2H50H                  (5)
 #define         GAS_CH3                      (6)
@@ -61,43 +61,42 @@
 #define         GAS_C4H10                   (10)
 #define         GAS_LPG                     (11)
 #define         GAS_Smoke                   (12)
-#define         GAS_CO_sec                  (13)  // for AIQ
+#define         GAS_CO_sec                  (13)  
 #define         GAS_LPG_sec                 (14)
 #define         GAS_CH4                     (15)
-#define         GAS_NO2                     (16)  // for AIQ
-#define         GAS_SO2                     (17)  // for AIQ
+#define         GAS_NO2                     (16)  
+#define         GAS_SO2                     (17) 
 /*****************************Globals***********************************************/
-float           COCurve[2]      =  {37793.94418, -3.24294658};  //MQ2
-float           H2Curve[2]      =  {957.1355042, -2.07442628};  //MQ2
-float           LPGCurve[2]     =  {591.6128784, -1.679699732}; //MQ2
-float           SmokeCurve[2]   =  {3426.376355, -2.225037973}; //MQ2
-float           LPG_secCurve[2] =  {1051.200149, -2.434978052}; //MQ6
-float           CH4Curve[2]     =  {1081.498208, -1.443059209}; //MQ6
-float           H2_secCurve[2]  =  {137997.7173, -3.76632598};  //MQ6
-float           CL2Curve[2]     =  {56.01727602, -1.359048399}; //MQ131
-float           O3Curve[2]      =  {42.84561841, -1.043297135}; //MQ131
-float           CO2Curve[2]     =  {113.7105289, -3.019713765}; //MQ135
-float           CO_secCurve[2]  =  {726.7809737, -4.040111669}; //MQ135
-float           NH4Curve[2]     =  {84.07117895, -4.41107687};  //MQ135
-float           CO2H50HCurve[2] =  {74.77989144, 3.010328075};  //MQ135
-float           CH3Curve[2]     =  {47.01770503, -3.281901967}; //MQ135
-float           CH3_2COCurve[2] =  {7.010800878, -2.122018939}; //MQ135
+float           COCurve[2]      =  {37793.94418, -3.24294658};   //MQ2
+float           H2Curve[2]      =  {957.1355042, -2.07442628};   //MQ2
+float           LPGCurve[2]     =  {591.6128784, -1.679699732};  //MQ2
+float           SmokeCurve[2]   =  {3426.376355, -2.225037973};  //MQ2
+float           LPG_secCurve[2] =  {1051.200149, -2.434978052};  //MQ6
+float           CH4Curve[2]     =  {1081.498208, -1.443059209};  //MQ6
+float           H2_secCurve[2]  =  {137997.7173, -3.76632598};   //MQ6
+float           CL2Curve[2]     =  {56.01727602, -1.359048399};  //MQ131
+float           O3Curve[2]      =  {42.84561841, -1.043297135};  //MQ131
+float           CO2Curve[2]     =  {113.7105289, -3.019713765};  //MQ135
+float           CO_secCurve[2]  =  {726.7809737, -4.040111669};  //MQ135
+float           NH4Curve[2]     =  {84.07117895, -4.41107687};   //MQ135
+float           CO2H50HCurve[2] =  {74.77989144, 3.010328075};   //MQ135
+float           CH3Curve[2]     =  {47.01770503, -3.281901967};  //MQ135
+float           CH3_2COCurve[2] =  {7.010800878, -2.122018939};  //MQ135
 float           C2H5OHCurve[2]  =  {0.2995093465, -3.148170562}; //TGS2600
 float           C4H10Curve[2]   =  {0.3555567714, -3.337882361}; //TGS2600
 float           H2_terCurve[2]  =  {0.3417050674, -2.887154835}; //TGS2600
-float           Ro              =  10;                 //Ro is initialized to 10 kilo ohms
+float           Ro              =  10000;                        //Ro is initialized to 10 kilo ohms
 
 
 unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
 //VARIABLES
-//float Ro = 10000.0; // this has to be tuned 10K Ohm
 float Ro0 = 4340;    //MQ2     3.83 this has to be tuned 10K Ohm
 float Ro1 = 1755;    //MQ6    25.76 this has to be tuned 10K Ohm
 float Ro2 = 2501;    //MQ131   2.24 this has to be tuned 10K Ohm
 float Ro3 = 2511;    //TGS2600 0.05 this has to be tuned 10K Ohm
 float Ro4 = 2511;    //MQ135   2.51 this has to be tuned 10K Ohm
-float Ro5 = 2511;     //2SH12   2.51 this has to be tuned 10K Ohm
-int val = 0;          // variable to store the value coming from the sensor
+float Ro5 = 2511;    //2SH12   2.51 this has to be tuned 10K Ohm
+int val = 0;         // variable to store the value coming from the sensor
 float valAIQ0 =0.0;
 float lastAIQ0 =0.0;
 float valAIQ1 =0.0;
@@ -184,22 +183,22 @@ void setup()
   
 //  delay(50*1000); //delay to allow serial to fully print before sleep
   Serial.print("Ro -->\n    MQ2:"); 
-  Ro0 = MQCalibration(MQ2_SENSOR);
+  Ro0 = MQCalibration(MQ2_SENSOR,10,SmokeCurve);
   Serial.println(Ro0);
   Serial.print("    MQ6:"); 
-  Ro1 = MQCalibration(MQ6_SENSOR);
+  Ro1 = MQCalibration(MQ6_SENSOR,10,LPGCurve);
   Serial.println(Ro1);
   Serial.print("    MQ131:"); 
-  Ro2 = MQCalibration(MQ131_SENSOR);
+  Ro2 = MQCalibration(MQ131_SENSOR,10,O3Curve);
   Serial.println(Ro2);
   Serial.print("    TGZS2600:"); 
-  Ro3 = MQCalibration(TGS2600_SENSOR);
+  Ro3 = MQCalibration(TGS2600_SENSOR,10,C2H5OHCurve);
   Serial.println(Ro3);
   Serial.print("    MQ135:"); 
-  Ro4 = MQCalibration(MQ135_SENSOR);
+  Ro4 = MQCalibration(MQ135_SENSOR,10,CO_secCurve);
   Serial.println(Ro4);
   Serial.print("    2SH12:"); 
-  Ro5 = MQCalibration(S2SH12_SENSOR);
+  Ro5 = MQResistanceCalculation(analogRead(S2SH12_SENSOR));
   Serial.println(Ro5);
  pinMode(DUST_SENSOR_DIGITAL_PIN,OUTPUT); //light on led
 }
@@ -325,11 +324,9 @@ void loop()
  //2SH12
    Serial.print("SO2    :"); 
    a=MQRead(S2SH12_SENSOR);
-   Serial.print(a);   Serial.print( "raw " );      
-   Serial.print(a-Ro5);
-   Serial.print( "ohm" );      
+   Serial.print(a);   Serial.print( " raw " );      
    Serial.print("\n");  
-    gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR)-Ro5)));
+    gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR))));
 
   digitalWrite(DUST_SENSOR_DIGITAL_PIN,LOW); // power on the LED
   delayMicroseconds(280);
@@ -384,21 +381,20 @@ Remarks: This function assumes that the sensor is in clean air. It use
          and then divides it with RO_CLEAN_AIR_FACTOR. RO_CLEAN_AIR_FACTOR is about 
          10, which differs slightly between different sensors.
 ************************************************************************************/ 
-float MQCalibration(int mq_pin)
+float MQCalibration(int mq_pin, double ppm, float *pcurve )
 {
   int i;
   float val=0;
- 
+
   for (i=0;i<CALIBRATION_SAMPLE_TIMES;i++) {            //take multiple samples
     val += MQResistanceCalculation(analogRead(mq_pin));
     delay(CALIBRATION_SAMPLE_INTERVAL);
   }
   val = val/CALIBRATION_SAMPLE_TIMES;                   //calculate the average value
- 
-  val = val/RO_CLEAN_AIR_FACTOR;                        //divided by RO_CLEAN_AIR_FACTOR yields the Ro 
-                                                        //according to the chart in the datasheet 
- 
-  return val; 
+  //Ro = Rs * sqrt(a/ppm, b) = Rs * exp( ln(a/ppm) / b )
+
+  return  (long)val*exp((log(pcurve[0]/ppm)/pcurve[1]));
+
 }
 /*****************************  MQRead *********************************************
 Input:   mq_pin - analog channel
