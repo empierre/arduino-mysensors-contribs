@@ -1,4 +1,4 @@
-/*
+ /*
   Arduino Multiple Air Quality Sensors
 
   connect the sensor as follows when standalone:
@@ -38,7 +38,9 @@
 #define         DUST_SENSOR_ANALOG_PIN       (11)
 #define         DUST_SENSOR_DIGITAL_PIN      (13)
 #define         HUMIDITY_SENSOR_DIGITAL_PIN  (6)
-#define         PRESSURE_SENSOR_ANALOG_PIN   (14)
+#define         MQ136_SENSOR                 (7)
+#define         TGS2602_SENSOR               (14)
+#define         PRESSURE_SENSOR_DIGITAL_PIN  (14)
 #define         RL_VALUE                     (22000) //define the load resistance on the board, in ohms
 #define         RO_CLEAN_AIR_FACTOR          (9.83)  //RO_CLEAR_AIR_FACTOR=(Sensor resistance in clean air)/RO,
 /***********************Software Related Macros************************************/
@@ -57,7 +59,7 @@
 #define         GAS_CH3                      (6)
 #define         GAS_CH3_2CO                  (7)
 #define         GAS_H2                       (8)
-#define         GAS_C2H5OH                   (9)
+#define         GAS_C2H5OH                   (9) //Ethanol
 #define         GAS_C4H10                   (10)
 #define         GAS_LPG                     (11)
 #define         GAS_Smoke                   (12)
@@ -66,6 +68,9 @@
 #define         GAS_CH4                     (15)
 #define         GAS_NO2                     (16)  
 #define         GAS_SO2                     (17) 
+#define         GAS_C7H8                    (18) //Toluene
+#define         GAS_H2S                     (19) //Hydrogen Sulfide
+#define         GAS_NH3                     (20) //Ammonia
 /*****************************Globals***********************************************/
 float           COCurve[2]      =  {37793.94418, -3.24294658};   //MQ2
 float           H2Curve[2]      =  {957.1355042, -2.07442628};   //MQ2
@@ -82,9 +87,16 @@ float           NH4Curve[2]     =  {84.07117895, -4.41107687};   //MQ135
 float           CO2H50HCurve[2] =  {74.77989144, 3.010328075};   //MQ135
 float           CH3Curve[2]     =  {47.01770503, -3.281901967};  //MQ135
 float           CH3_2COCurve[2] =  {7.010800878, -2.122018939};  //MQ135
-float           C2H5OHCurve[2]  =  {0.2995093465, -3.148170562}; //TGS2600
+float           SO2_Curve[2]    =  {40.44109566, -1.085728557};  //MQ136
+float           CH4_secCurve[2] =  {57.82777729, -1.187494933};  //MQ136
+float           CO_terCurve[2]  =  {2142.297846, -2.751369226};  //MQ136
+float           C2H5OHCurve[2]  =  {0.2995093465,-3.148170562};  //TGS2600
 float           C4H10Curve[2]   =  {0.3555567714, -3.337882361}; //TGS2600
 float           H2_terCurve[2]  =  {0.3417050674, -2.887154835}; //TGS2600
+float           C7H8Curve[2]    =  {37.22590719,   2.078062258}; //TGS2602     (0.3;1)( 0.8;10) (0.4;30)
+float           H2S_Curve[2]    =  {0.05566582614,-2.954075758}; //TGS2602    
+float           C2H5OH_secCurve[2]  =  {0.5409499131,-2.312489623};//TGS2602    
+float           NH3_Curve[2]    =  {0.585030495,  -3.448654502  };//TGS2602    
 float           Ro              =  10000;                        //Ro is initialized to 10 kilo ohms
 
 
@@ -96,6 +108,7 @@ float Ro2 = 2501;    //MQ131   2.24 this has to be tuned 10K Ohm
 float Ro3 = 2511;    //TGS2600 0.05 this has to be tuned 10K Ohm
 float Ro4 = 2511;    //MQ135   2.51 this has to be tuned 10K Ohm
 float Ro5 = 2511;    //2SH12   2.51 this has to be tuned 10K Ohm
+float Ro6 = 2511;    //TGS2602 0.05 this has to be tuned 10K Ohm
 int val = 0;         // variable to store the value coming from the sensor
 float valAIQ0 =0.0;
 float lastAIQ0 =0.0;
@@ -109,6 +122,9 @@ float valAIQ4 =0.0;
 float lastAIQ4 =0.0;
 float valAIQ5 =0.0;
 float lastAIQ5 =0.0;
+float valAIQ6 =0.0;
+float lastAIQ6 =0.0;
+
 float calcVoltage = 0;
 float dustDensity = 0;
 boolean metric = true; 
@@ -127,6 +143,8 @@ float pressureAvg[7];
 float dP_dt;
 //test
 float a=0;
+boolean pcReceived = false;
+
 
 #define CHILD_ID_MQ2 0
 #define CHILD_ID_MQ6 1
@@ -139,25 +157,43 @@ float a=0;
 #define CHILD_ID_TEMP 8
 #define CHILD_ID_PRESSURE 9
 #define CHILD_ID_FORECAST 10
+#define CHILD_ID_TGS2602 11
 
 DHT dht;
 Adafruit_BMP085 bmp = Adafruit_BMP085();     // Digital Pressure Sensor 
 MySensor gw(48,49);  // Arduino Mega initialization
 MyMessage msg_dust(CHILD_ID_DUST, 45);      //AqPM10
 MyMessage msg_mq2(CHILD_ID_MQ2, 40);        //Smoke
+MyMessage pcMsg_mq2(CHILD_ID_MQ2,V_VAR1);
 MyMessage msg_mq6(CHILD_ID_MQ6, 41);        //LPG
+MyMessage pcMsg_mq6(CHILD_ID_MQ6,V_VAR1);
 MyMessage msg_mq131(CHILD_ID_MQ131, 42);    //Aq03
+MyMessage pcMsg_mq131(CHILD_ID_MQ131,V_VAR1);
 MyMessage msg_tgs2600(CHILD_ID_TGS2600, 43);//AqH2
+MyMessage pcMsg_tgs2600(CHILD_ID_TGS2600,V_VAR1);
 MyMessage msg_mq135(CHILD_ID_MQ135, 44);    //AqCO
+MyMessage pcMsg_mq135(CHILD_ID_MQ135,V_VAR1);
 MyMessage msg_2sh12(CHILD_ID_2SH12, 46);    //AqSO2
+MyMessage pcMsg_2sh12(CHILD_ID_2SH12,V_VAR1);
 MyMessage msgHum(CHILD_ID_HUM, V_HUM);
 MyMessage msgTemp(CHILD_ID_TEMP, V_TEMP);
 MyMessage pressureMsg(CHILD_ID_PRESSURE, V_PRESSURE);
 MyMessage forecastMsg(CHILD_ID_FORECAST, V_FORECAST);
+MyMessage msg_tgs2602(CHILD_ID_TGS2602, 47);//AqH2
+MyMessage pcMsg_tgs2602(CHILD_ID_TGS2602,V_VAR1);
 
 void setup()  
 { 
-  gw.begin();
+  gw.begin(incomingMessage);
+  
+  gw.request(CHILD_ID_MQ2, V_VAR1);
+  gw.request(CHILD_ID_MQ6, V_VAR1);
+  gw.request(CHILD_ID_MQ131, V_VAR1);
+  gw.request(CHILD_ID_TGS2600, V_VAR1);
+  gw.request(CHILD_ID_MQ135, V_VAR1);
+  gw.request(CHILD_ID_2SH12, V_VAR1);  
+  gw.request(CHILD_ID_TGS2602, V_VAR1);
+  
   dht.setup(HUMIDITY_SENSOR_DIGITAL_PIN); 
   if (!bmp.begin()) {
     Serial.println("Could not find a valid BMP085 sensor, check wiring!");
@@ -178,6 +214,7 @@ void setup()
   gw.present(CHILD_ID_HUM, S_HUM);
   gw.present(CHILD_ID_TEMP, S_TEMP);
   gw.present(CHILD_ID_PRESSURE, S_BARO);
+  gw.present(CHILD_ID_TGS2602, S_AIR_QUALITY);  
   
   metric = gw.getConfig().isMetric;
   
@@ -185,22 +222,33 @@ void setup()
   Serial.print("Ro -->\n    MQ2:"); 
   Ro0 = MQCalibration(MQ2_SENSOR,10,SmokeCurve);
   Serial.println(Ro0);
+  gw.send(pcMsg_mq2.set((long int)ceil(Ro0)));
   Serial.print("    MQ6:"); 
   Ro1 = MQCalibration(MQ6_SENSOR,10,LPGCurve);
   Serial.println(Ro1);
+  gw.send(pcMsg_mq6.set((long int)ceil(Ro1)));
   Serial.print("    MQ131:"); 
   Ro2 = MQCalibration(MQ131_SENSOR,10,O3Curve);
   Serial.println(Ro2);
+  gw.send(pcMsg_mq131.set((long int)ceil(Ro2)));
   Serial.print("    TGZS2600:"); 
   Ro3 = MQCalibration(TGS2600_SENSOR,10,C2H5OHCurve);
   Serial.println(Ro3);
+  gw.send(pcMsg_tgs2600.set((long int)ceil(Ro3)));
   Serial.print("    MQ135:"); 
   Ro4 = MQCalibration(MQ135_SENSOR,10,CO_secCurve);
   Serial.println(Ro4);
+    gw.send(pcMsg_mq135.set((long int)Ro4));
   Serial.print("    2SH12:"); 
   Ro5 = MQResistanceCalculation(analogRead(S2SH12_SENSOR));
   Serial.println(Ro5);
- pinMode(DUST_SENSOR_DIGITAL_PIN,OUTPUT); //light on led
+  gw.send(pcMsg_2sh12.set((long int)ceil(Ro5)));
+  pinMode(DUST_SENSOR_DIGITAL_PIN,OUTPUT); //light on led
+  Serial.print("    TGZS2602:"); 
+  Ro6 = MQCalibration(TGS2602_SENSOR,1,C7H8Curve);
+  Serial.println(Ro6);
+  gw.send(pcMsg_tgs2602.set((long int)ceil(Ro6)));
+
 }
 
 
@@ -327,7 +375,14 @@ void loop()
    Serial.print(a);   Serial.print( " raw " );      
    Serial.print("\n");  
     gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR))));
-
+ //TGS2602 C7H8
+   Serial.print("TGS2602:"); 
+   Serial.print("C7H8  :"); 
+   Serial.print(MQGetGasPercentage(MQRead(TGS2602_SENSOR),Ro6,GAS_C7H8,TGS2602_SENSOR) );
+         gw.send(msg_tgs2602.set((int)ceil(MQGetGasPercentage(MQRead(TGS2602_SENSOR),Ro6,GAS_C7H8,TGS2602_SENSOR))));
+   Serial.print( "ppm" );
+   Serial.print("\n");  
+   
   digitalWrite(DUST_SENSOR_DIGITAL_PIN,LOW); // power on the LED
   delayMicroseconds(280);
   uint16_t voMeasured = analogRead(DUST_SENSOR_ANALOG_PIN);// Get DUST value
@@ -466,6 +521,14 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
     } else if ( gas_id == GAS_CO_sec ) {
      return MQGetPercentage(rs_ro_ratio,ro,CO_secCurve);  //MQ135
     }
+  } else if (sensor_id == MQ136_SENSOR ){
+    if ( gas_id == GAS_SO2 ) {
+     return MQGetPercentage(rs_ro_ratio,ro,SO2_Curve);     //MQ136
+    } else if ( gas_id == GAS_CH4 ) {
+     return MQGetPercentage(rs_ro_ratio,ro,CH4_secCurve);  //MQ136
+    } else if ( gas_id == GAS_CO ) {
+     return MQGetPercentage(rs_ro_ratio,ro,CO_terCurve);   //MQ136
+    }
   } else if (sensor_id == TGS2600_SENSOR ){
     if ( gas_id == GAS_C2H5OH ) {
       return MQGetPercentage(rs_ro_ratio,ro,C2H5OHCurve);  //TGS2600
@@ -473,6 +536,16 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
        return MQGetPercentage(rs_ro_ratio,ro,C4H10Curve);   //TGS2600
     } else if ( gas_id == GAS_H2 ) {
        return MQGetPercentage(rs_ro_ratio,ro,H2_terCurve);  //TGS2600
+    }    
+   } else if (sensor_id == TGS2602_SENSOR ){
+    if ( gas_id == GAS_C7H8 ) {
+      return MQGetPercentage(rs_ro_ratio,ro,C7H8Curve);  //TGS2602
+    } else if ( gas_id == GAS_H2S ) {
+      return MQGetPercentage(rs_ro_ratio,ro,H2S_Curve);  //TGS2602
+    } else if ( gas_id == GAS_NH3 ) {
+      return MQGetPercentage(rs_ro_ratio,ro,NH3_Curve);  //TGS2602
+    } else if ( gas_id == GAS_C2H5OH ) {
+      return MQGetPercentage(rs_ro_ratio,ro,C2H5OH_secCurve);  //TGS2602
     }    
   } else if (sensor_id == S2SH12_SENSOR) {
     if ( gas_id == GAS_SO2 ) {
@@ -595,3 +668,11 @@ int sample(float pressure) {
 		return 5; // Unknown
 }
 
+void incomingMessage(const MyMessage &message) {
+  if (message.type==V_VAR1) {  
+    long int pulseCount = message.getLong();
+    Serial.print("Received last pulse count from gw:");
+    Serial.println(pulseCount);
+    pcReceived = true;
+  }
+}
