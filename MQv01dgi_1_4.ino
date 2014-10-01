@@ -39,6 +39,7 @@
 #define         DUST_SENSOR_DIGITAL_PIN      (13)
 #define         HUMIDITY_SENSOR_DIGITAL_PIN  (6)
 #define         MQ136_SENSOR                 (7)
+#define         MQ138_SENSOR                 (8)
 #define         TGS2602_SENSOR               (14)
 #define         PRESSURE_SENSOR_DIGITAL_PIN  (14)
 #define         RL_VALUE                     (22000) //define the load resistance on the board, in ohms
@@ -55,11 +56,10 @@
 #define         GAS_CO2                      (2)
 #define         GAS_CO                       (3) 
 #define         GAS_NH4                      (4)
-#define         GAS_CO2H50H                  (5)
 #define         GAS_CH3                      (6)
 #define         GAS_CH3_2CO                  (7)
 #define         GAS_H2                       (8)
-#define         GAS_C2H5OH                   (9) //Ethanol
+#define         GAS_C2H5OH                   (9) //Alcohol, Ethanol
 #define         GAS_C4H10                   (10)
 #define         GAS_LPG                     (11)
 #define         GAS_Smoke                   (12)
@@ -71,6 +71,9 @@
 #define         GAS_C7H8                    (18) //Toluene
 #define         GAS_H2S                     (19) //Hydrogen Sulfide
 #define         GAS_NH3                     (20) //Ammonia
+#define         GAS_C6H6                    (21) //Benzene
+#define         GAS_C3H8                    (22) //Propane
+#define         GAS_NHEX                    (23) //n-hexa
 /*****************************Globals***********************************************/
 float           COCurve[2]      =  {37793.94418, -3.24294658};   //MQ2
 float           H2Curve[2]      =  {957.1355042, -2.07442628};   //MQ2
@@ -84,19 +87,24 @@ float           O3Curve[2]      =  {42.84561841, -1.043297135};  //MQ131
 float           CO2Curve[2]     =  {113.7105289, -3.019713765};  //MQ135
 float           CO_secCurve[2]  =  {726.7809737, -4.040111669};  //MQ135
 float           NH4Curve[2]     =  {84.07117895, -4.41107687};   //MQ135
-float           CO2H50HCurve[2] =  {74.77989144, 3.010328075};   //MQ135
+float           C2H50H_Curve[2] =  {74.77989144, 3.010328075};   //MQ135 
 float           CH3Curve[2]     =  {47.01770503, -3.281901967};  //MQ135
 float           CH3_2COCurve[2] =  {7.010800878, -2.122018939};  //MQ135
 float           SO2_Curve[2]    =  {40.44109566, -1.085728557};  //MQ136
 float           CH4_secCurve[2] =  {57.82777729, -1.187494933};  //MQ136
 float           CO_terCurve[2]  =  {2142.297846, -2.751369226};  //MQ136
-float           C2H5OHCurve[2]  =  {0.2995093465,-3.148170562};  //TGS2600
+float           NHEX_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,200) (0.8,1000) (0.28,10000)
+float           C6H6_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (2.1,200) (1,1000) (0.32,10000)
+float           C3H8_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,200) (0.8,1000) (0.28,10000)
+float           C2H5OH_terCurve[2]  =  {2142.297846, -2.751369226};//MQ138 (3,200) (1.8,1000) (0.7,10000)
+float           CH4_terCurve[2]    =  {2142.297846, -2.751369226};//MQ138 (3,200) (1.8,1000) (0.7,10000)
+float           C2H5OH_secCurve[2]  =  {0.2995093465,-3.148170562};//TGS2600
 float           C4H10Curve[2]   =  {0.3555567714, -3.337882361}; //TGS2600
 float           H2_terCurve[2]  =  {0.3417050674, -2.887154835}; //TGS2600
 float           C7H8Curve[2]    =  {37.22590719,   2.078062258}; //TGS2602     (0.3;1)( 0.8;10) (0.4;30)
-float           H2S_Curve[2]    =  {0.05566582614,-2.954075758}; //TGS2602    
-float           C2H5OH_secCurve[2]  =  {0.5409499131,-2.312489623};//TGS2602    
-float           NH3_Curve[2]    =  {0.585030495,  -3.448654502  };//TGS2602    
+float           H2S_Curve[2]    =  {0.05566582614,-2.954075758}; //TGS2602     (0.8,0.1) (0.4,1) (0.25,3)
+float           C2H5OH_quarCurve[2]  =  {0.5409499131,-2.312489623};//TGS2602   (0.75,1) (0.3,10) (0.17,30)  
+float           NH3_Curve[2]  =  {0.585030495,  -3.448654502  };//TGS2602    (0.8,1) (0.5,10) (0.3,30) 
 float           Ro              =  10000;                        //Ro is initialized to 10 kilo ohms
 
 
@@ -110,20 +118,7 @@ float Ro4 = 2511;    //MQ135   2.51 this has to be tuned 10K Ohm
 float Ro5 = 2511;    //2SH12   2.51 this has to be tuned 10K Ohm
 float Ro6 = 2511;    //TGS2602 0.05 this has to be tuned 10K Ohm
 int val = 0;         // variable to store the value coming from the sensor
-float valAIQ0 =0.0;
-float lastAIQ0 =0.0;
-float valAIQ1 =0.0;
-float lastAIQ1 =0.0;
-float valAIQ2 =0.0;
-float lastAIQ2 =0.0;
-float valAIQ3 =0.0;
-float lastAIQ3 =0.0;
-float valAIQ4 =0.0;
-float lastAIQ4 =0.0;
-float valAIQ5 =0.0;
-float lastAIQ5 =0.0;
-float valAIQ6 =0.0;
-float lastAIQ6 =0.0;
+
 
 float calcVoltage = 0;
 float dustDensity = 0;
@@ -232,7 +227,7 @@ void setup()
   Serial.println(Ro2);
   gw.send(pcMsg_mq131.set((long int)ceil(Ro2)));
   Serial.print("    TGZS2600:"); 
-  Ro3 = MQCalibration(TGS2600_SENSOR,10,C2H5OHCurve);
+  Ro3 = MQCalibration(TGS2600_SENSOR,10,C2H5OH_terCurve);
   Serial.println(Ro3);
   gw.send(pcMsg_tgs2600.set((long int)ceil(Ro3)));
   Serial.print("    MQ135:"); 
@@ -512,8 +507,8 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
      return MQGetPercentage(rs_ro_ratio,ro,CO2Curve);     //MQ135
     } else if ( gas_id == GAS_NH4 ) {
      return MQGetPercentage(rs_ro_ratio,ro,NH4Curve);     //MQ135
-    } else if ( gas_id == GAS_CO2H50H ) {
-     return MQGetPercentage(rs_ro_ratio,ro,CO2H50HCurve); //MQ135
+    } else if ( gas_id == GAS_C2H5OH ) {
+     return MQGetPercentage(rs_ro_ratio,ro,C2H50H_Curve); //MQ135
     } else if ( gas_id == GAS_CH3 ) {
      return MQGetPercentage(rs_ro_ratio,ro,CH3Curve);     //MQ135
     } else if ( gas_id == GAS_CH3_2CO ) {
@@ -529,9 +524,19 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
     } else if ( gas_id == GAS_CO ) {
      return MQGetPercentage(rs_ro_ratio,ro,CO_terCurve);   //MQ136
     }
+   } else if (sensor_id == MQ138_SENSOR ){
+    if ( gas_id == GAS_C6H6 ) {
+     return MQGetPercentage(rs_ro_ratio,ro,C6H6_Curve);    //MQ138
+    } else if ( gas_id == GAS_CH4 ) {
+     return MQGetPercentage(rs_ro_ratio,ro,CH4_terCurve);  //MQ138
+    } else if ( gas_id == GAS_C3H8 ) {
+     return MQGetPercentage(rs_ro_ratio,ro,C3H8_Curve); //MQ138
+    } else if ( gas_id == GAS_NHEX ) {
+     return MQGetPercentage(rs_ro_ratio,ro,NHEX_Curve); //MQ138
+    }
   } else if (sensor_id == TGS2600_SENSOR ){
     if ( gas_id == GAS_C2H5OH ) {
-      return MQGetPercentage(rs_ro_ratio,ro,C2H5OHCurve);  //TGS2600
+      return MQGetPercentage(rs_ro_ratio,ro,C2H5OH_terCurve);  //TGS2600
     } else if ( gas_id == GAS_C4H10 ) {
        return MQGetPercentage(rs_ro_ratio,ro,C4H10Curve);   //TGS2600
     } else if ( gas_id == GAS_H2 ) {
@@ -545,7 +550,7 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
     } else if ( gas_id == GAS_NH3 ) {
       return MQGetPercentage(rs_ro_ratio,ro,NH3_Curve);  //TGS2602
     } else if ( gas_id == GAS_C2H5OH ) {
-      return MQGetPercentage(rs_ro_ratio,ro,C2H5OH_secCurve);  //TGS2602
+      return MQGetPercentage(rs_ro_ratio,ro,C2H5OH_quarCurve);  //TGS2602
     }    
   } else if (sensor_id == S2SH12_SENSOR) {
     if ( gas_id == GAS_SO2 ) {
