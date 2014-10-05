@@ -109,9 +109,9 @@ float           Ro              =  10000;                        //Ro is initial
 
 unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
 //VARIABLES
-float Ro0 = 4.340;    //MQ2     3.83 this has to be tuned 10K Ohm
-float RL0 = 3.000;    //MQ2     Elecfreacks Octopus
-float Ro1 = 1.755;    //MQ6    25.76 this has to be tuned 10K Ohm
+float Ro0 = 4.300;    //MQ2     3.83 this has to be tuned 10K Ohm
+float RL0 = 2.897;    //MQ2     Elecfreacks Octopus
+float Ro1 = 1.755;    //MQ6     25.76 this has to be tuned 10K Ohm
 float RL1 = 0.993;    //MQ6     Gas Sensor V1.3 auto-ctrl.com 
 float Ro2 = 2.501;    //MQ131   2.24 this has to be tuned 10K Ohm
 float RL2 = 0.679;    //MQ131   Sainsmart
@@ -120,9 +120,9 @@ float RL3 = 0.893;    //TGS2600 Sainsmart
 float Ro4 = 2.511;    //MQ135   2.51 this has to be tuned 10K Ohm
 float RL4 = 0.990;    //MQ135   FC-22
 float Ro5 = 2.511;    //2SH12   
-float RL5 = 5160000;  //2SH12  MQ-XL-V2 auto-ctrl.com 
+float RL5 = 4000;     //2SH12   MQ-XL-V2 auto-ctrl.com 
 float Ro6 = 2.511;    //TGS2602 0.05 this has to be tuned 10K Ohm
-float RL6 = 10.000;   //TGS2602 Gas Sensor V1.3 auto-ctrl.com 
+float RL6 = 0.893;    //TGS2602 Gas Sensor V1.3 auto-ctrl.com 
 int val = 0;          // variable to store the value coming from the sensor
 
 
@@ -187,13 +187,13 @@ void setup()
 { 
   gw.begin(incomingMessage);
   
-  gw.request(CHILD_ID_MQ2, V_VAR1);
+/*  gw.request(CHILD_ID_MQ2, V_VAR1);
   gw.request(CHILD_ID_MQ6, V_VAR1);
   gw.request(CHILD_ID_MQ131, V_VAR1);
   gw.request(CHILD_ID_TGS2600, V_VAR1);
   gw.request(CHILD_ID_MQ135, V_VAR1);
   gw.request(CHILD_ID_2SH12, V_VAR1);  
-  gw.request(CHILD_ID_TGS2602, V_VAR1);
+  gw.request(CHILD_ID_TGS2602, V_VAR1);*/
   
   dht.setup(HUMIDITY_SENSOR_DIGITAL_PIN); 
   if (!bmp.begin()) {
@@ -232,7 +232,7 @@ void setup()
   Ro2 = MQCalibration(MQ131_SENSOR,10,RL2,O3Curve);
   Serial.println(Ro2);
   gw.send(pcMsg_mq131.set((long int)ceil(Ro2)));
-  Serial.print("    TGZS2600:"); 
+  Serial.print("    TGS2600:"); 
   Ro3 = MQCalibration(TGS2600_SENSOR,10,RL3,C2H5OH_terCurve);
   Serial.println(Ro3);
   gw.send(pcMsg_tgs2600.set((long int)ceil(Ro3)));
