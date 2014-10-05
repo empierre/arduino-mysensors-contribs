@@ -42,8 +42,7 @@
 #define         MQ138_SENSOR                 (8)
 #define         TGS2602_SENSOR               (14)
 #define         PRESSURE_SENSOR_DIGITAL_PIN  (14)
-#define         RL_VALUE                     (22000) //define the load resistance on the board, in ohms
-#define         RO_CLEAN_AIR_FACTOR          (9.83)  //RO_CLEAR_AIR_FACTOR=(Sensor resistance in clean air)/RO,
+#define         RL_VALUE                     (990) //define the load resistance on the board, in ohms
 /***********************Software Related Macros************************************/
 #define         CALIBRATION_SAMPLE_TIMES     (50)    //define how many samples you are going to take in the calibration phase
 #define         CALIBRATION_SAMPLE_INTERVAL  (500)   //define the time interal(in milisecond) between each samples in the
@@ -110,13 +109,20 @@ float           Ro              =  10000;                        //Ro is initial
 
 unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
 //VARIABLES
-float Ro0 = 4340;    //MQ2     3.83 this has to be tuned 10K Ohm
-float Ro1 = 1755;    //MQ6    25.76 this has to be tuned 10K Ohm
-float Ro2 = 2501;    //MQ131   2.24 this has to be tuned 10K Ohm
-float Ro3 = 2511;    //TGS2600 0.05 this has to be tuned 10K Ohm
-float Ro4 = 2511;    //MQ135   2.51 this has to be tuned 10K Ohm
-float Ro5 = 2511;    //2SH12   2.51 this has to be tuned 10K Ohm
-float Ro6 = 2511;    //TGS2602 0.05 this has to be tuned 10K Ohm
+float Ro0 = 4.340;    //MQ2     3.83 this has to be tuned 10K Ohm
+float RL0 = 3.000;    //MQ2     Elecfreacks Octopus
+float Ro1 = 1.755;    //MQ6    25.76 this has to be tuned 10K Ohm
+float RL1 = 0.993;     //MQ6     Gas Sensor V1.3 auto-ctrl.com 
+float Ro2 = 2.501;    //MQ131   2.24 this has to be tuned 10K Ohm
+float RL2 = 0.679;     //MQ131   Sainsmart
+float Ro3 = 2.511;    //TGS2600 0.05 this has to be tuned 10K Ohm
+float RL3 = 0.893;     //TGS2600 Sainsmart
+float Ro4 = 2.511;    //MQ135   2.51 this has to be tuned 10K Ohm
+float RL4 = 0.990;     //MQ135   FC-22
+float Ro5 = 2.511;    //2SH12   
+float RL5 = 5160000;//2SH12  MQ-XL-V2 auto-ctrl.com 
+float Ro6 = 2.511;    //TGS2602 0.05 this has to be tuned 10K Ohm
+float RL6 = 10.000;   //TGS2602 Gas Sensor V1.3 auto-ctrl.com 
 int val = 0;         // variable to store the value coming from the sensor
 
 
@@ -215,32 +221,32 @@ void setup()
   
 //  delay(50*1000); //delay to allow serial to fully print before sleep
   Serial.print("Ro -->\n    MQ2:"); 
-  Ro0 = MQCalibration(MQ2_SENSOR,10,SmokeCurve);
+  Ro0 = MQCalibration(MQ2_SENSOR,10,RL0,SmokeCurve);
   Serial.println(Ro0);
   gw.send(pcMsg_mq2.set((long int)ceil(Ro0)));
   Serial.print("    MQ6:"); 
-  Ro1 = MQCalibration(MQ6_SENSOR,10,LPGCurve);
+  Ro1 = MQCalibration(MQ6_SENSOR,10,RL1,LPGCurve);
   Serial.println(Ro1);
   gw.send(pcMsg_mq6.set((long int)ceil(Ro1)));
   Serial.print("    MQ131:"); 
-  Ro2 = MQCalibration(MQ131_SENSOR,10,O3Curve);
+  Ro2 = MQCalibration(MQ131_SENSOR,10,RL2,O3Curve);
   Serial.println(Ro2);
   gw.send(pcMsg_mq131.set((long int)ceil(Ro2)));
   Serial.print("    TGZS2600:"); 
-  Ro3 = MQCalibration(TGS2600_SENSOR,10,C2H5OH_terCurve);
+  Ro3 = MQCalibration(TGS2600_SENSOR,10,RL3,C2H5OH_terCurve);
   Serial.println(Ro3);
   gw.send(pcMsg_tgs2600.set((long int)ceil(Ro3)));
   Serial.print("    MQ135:"); 
-  Ro4 = MQCalibration(MQ135_SENSOR,10,CO_secCurve);
+  Ro4 = MQCalibration(MQ135_SENSOR,10,RL4,CO_secCurve);
   Serial.println(Ro4);
     gw.send(pcMsg_mq135.set((long int)Ro4));
   Serial.print("    2SH12:"); 
-  Ro5 = MQResistanceCalculation(analogRead(S2SH12_SENSOR));
+  Ro5 = MQResistanceCalculation(analogRead(S2SH12_SENSOR),RL5);
   Serial.println(Ro5);
   gw.send(pcMsg_2sh12.set((long int)ceil(Ro5)));
   pinMode(DUST_SENSOR_DIGITAL_PIN,OUTPUT); //light on led
   Serial.print("    TGZS2602:"); 
-  Ro6 = MQCalibration(TGS2602_SENSOR,1,C7H8Curve);
+  Ro6 = MQCalibration(TGS2602_SENSOR,1,RL6,C7H8Curve);
   Serial.println(Ro6);
   gw.send(pcMsg_tgs2602.set((long int)ceil(Ro6)));
 
@@ -295,86 +301,86 @@ void loop()
    //MQ2 CO LPG Smoke
    Serial.print("MQ2    :"); 
    Serial.print("LPG   :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro0,GAS_LPG,MQ2_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR,RL0),Ro0,GAS_LPG,MQ2_SENSOR) );
    Serial.print( "ppm" );
    Serial.print("   ");   
    Serial.print("CO    :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro0,GAS_CO_sec,MQ2_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR,RL0),Ro0,GAS_CO_sec,MQ2_SENSOR) );
    Serial.print( "ppm" );
    Serial.print("    ");   
    Serial.print("SMOKE :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro0,GAS_Smoke,MQ2_SENSOR) );
-            gw.send(msg_mq2.set((int)ceil(MQGetGasPercentage(MQRead(MQ2_SENSOR),Ro2,GAS_Smoke,MQ2_SENSOR))));
+   Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR,RL0),Ro0,GAS_Smoke,MQ2_SENSOR) );
+            gw.send(msg_mq2.set((int)ceil(MQGetGasPercentage(MQRead(MQ2_SENSOR,RL0),Ro0,GAS_Smoke,MQ2_SENSOR))));
    Serial.print( "ppm" );
    Serial.print("\n");   
    //MQ6
    Serial.print("MQ6    :"); 
    Serial.print("LPG   :");
-   Serial.print(MQGetGasPercentage(MQRead(MQ6_SENSOR),Ro1,GAS_LPG_sec,MQ6_SENSOR) );
-            gw.send(msg_mq6.set((int)ceil(MQGetGasPercentage(MQRead(MQ6_SENSOR),Ro2,GAS_LPG,MQ6_SENSOR))));
+   Serial.print(MQGetGasPercentage(MQRead(MQ6_SENSOR,RL1),Ro1,GAS_LPG_sec,MQ6_SENSOR) );
+            gw.send(msg_mq6.set((int)ceil(MQGetGasPercentage(MQRead(MQ6_SENSOR,RL1),Ro1,GAS_LPG,MQ6_SENSOR))));
    Serial.print( "ppm" );
    Serial.print("    "); 
    Serial.print("CH4   :");
-   Serial.print(MQGetGasPercentage(MQRead(MQ6_SENSOR),Ro1,GAS_CH4,MQ6_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ6_SENSOR,RL1),Ro1,GAS_CH4,MQ6_SENSOR) );
    Serial.print( "ppm" );
    Serial.print("\n");
    //MQ131 CL2 O3
    Serial.print("MQ131  :"); 
       Serial.print(analogRead(MQ131_SENSOR));
    Serial.print("CL2   :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ131_SENSOR),Ro2,GAS_CL2,MQ131_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ131_SENSOR,RL2),Ro2,GAS_CL2,MQ131_SENSOR) );
    Serial.print( "ppm" );
       Serial.print("    ");   
    Serial.print("O3    :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ131_SENSOR),Ro2,GAS_O3,MQ131_SENSOR) );
-         gw.send(msg_mq131.set((int)ceil(MQGetGasPercentage(MQRead(MQ131_SENSOR),Ro2,GAS_O3,MQ131_SENSOR))));
+   Serial.print(MQGetGasPercentage(MQRead(MQ131_SENSOR,RL2),Ro2,GAS_O3,MQ131_SENSOR) );
+         gw.send(msg_mq131.set((int)ceil(MQGetGasPercentage(MQRead(MQ131_SENSOR,RL2),Ro2,GAS_O3,MQ131_SENSOR))));
    Serial.print( "ppm" );
    Serial.print("\n");
    //TGS2600 H2 C2H5OH C4H10   
    Serial.print("TGS2600:"); 
    Serial.print("H2    :"); 
-   Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_H2,TGS2600_SENSOR) );
-         gw.send(msg_tgs2600.set((int)ceil(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro2,GAS_H2,TGS2600_SENSOR))));
+   Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR,RL3),Ro3,GAS_H2,TGS2600_SENSOR) );
+         gw.send(msg_tgs2600.set((int)ceil(MQGetGasPercentage(MQRead(TGS2600_SENSOR,RL3),Ro3,GAS_H2,TGS2600_SENSOR))));
    Serial.print( "ppm" );
       Serial.print("  ");   
    Serial.print("C2H5OH:"); 
-   Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_C2H5OH,TGS2600_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR,RL3),Ro3,GAS_C2H5OH,TGS2600_SENSOR) );
    Serial.print( "ppm" );
       Serial.print(" ");   
    Serial.print("C4H10 :"); 
-   Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR),Ro3,GAS_C4H10,TGS2600_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR,RL3),Ro3,GAS_C4H10,TGS2600_SENSOR) );
    Serial.print( "ppm" );
    Serial.print("\n");    
    //MQ135  CO NH4 CH3 CO2
    Serial.print("MQ135  :"); 
    Serial.print("CO2   :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),68550,GAS_CO2,MQ135_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR,RL4),Ro4,GAS_CO2,MQ135_SENSOR) );
    Serial.print( "ppm" );      
       Serial.print("    ");   
    Serial.print("CO    :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CO,MQ135_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR,RL4),Ro4,GAS_CO,MQ135_SENSOR) );
    Serial.print( "ppm" );      
-   gw.send(msg_mq135.set((int)ceil(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CO,MQ135_SENSOR))));
+   gw.send(msg_mq135.set((int)ceil(MQGetGasPercentage(MQRead(MQ135_SENSOR,RL4),Ro4,GAS_CO,MQ135_SENSOR))));
       Serial.print("     ");   
    Serial.print("CH3   :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_CH3,MQ135_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR,RL4),Ro4,GAS_CH3,MQ135_SENSOR) );
    Serial.print( "ppm" );      
       Serial.print("    ");   
    Serial.print("NH4    :"); 
-   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR),Ro4,GAS_NH4,MQ135_SENSOR) );
+   Serial.print(MQGetGasPercentage(MQRead(MQ135_SENSOR,RL4),Ro4,GAS_NH4,MQ135_SENSOR) );
    Serial.print( "ppm" );      
    Serial.print("\n");  
  //2SH12
    Serial.print("SO2    :"); 
-   a=MQRead(S2SH12_SENSOR);
+   a=MQRead(S2SH12_SENSOR,RL5);
    Serial.print(a);   Serial.print( " raw " );      
    Serial.print("\n");  
-    gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR))));
+    gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR,RL5))));
  //TGS2602 C7H8
    Serial.print("TGS2602:"); 
    Serial.print("C7H8  :"); 
-   Serial.print(MQGetGasPercentage(MQRead(TGS2602_SENSOR),Ro6,GAS_C7H8,TGS2602_SENSOR) );
-         gw.send(msg_tgs2602.set((int)ceil(MQGetGasPercentage(MQRead(TGS2602_SENSOR),Ro6,GAS_C7H8,TGS2602_SENSOR))));
+   Serial.print(MQGetGasPercentage(MQRead(TGS2602_SENSOR,RL6),Ro6,GAS_C7H8,TGS2602_SENSOR) );
+         gw.send(msg_tgs2602.set((int)ceil(MQGetGasPercentage(MQRead(TGS2602_SENSOR,RL6),Ro6,GAS_C7H8,TGS2602_SENSOR))));
    Serial.print( "ppm" );
    Serial.print("\n");  
    
@@ -418,26 +424,26 @@ Remarks: The sensor and the load resistor forms a voltage divider. Given the vol
          across the load resistor and its resistance, the resistance of the sensor
          could be derived.
 ************************************************************************************/ 
-float MQResistanceCalculation(int raw_adc)
+float MQResistanceCalculation(int raw_adc,float rl_value)
 {
-  return ( ((float)RL_VALUE*(1023-raw_adc)/raw_adc));
+//  return ( ((float)RL_VALUE*(1023-raw_adc)/raw_adc));
+  return  (long)((long)(1024*1000*(long)rl_value)/raw_adc-(long)RL_VALUE);
+;
 }
  
 /***************************** MQCalibration ****************************************
 Input:   mq_pin - analog channel
 Output:  Ro of the sensor
 Remarks: This function assumes that the sensor is in clean air. It use  
-         MQResistanceCalculation to calculates the sensor resistance in clean air 
-         and then divides it with RO_CLEAN_AIR_FACTOR. RO_CLEAN_AIR_FACTOR is about 
-         10, which differs slightly between different sensors.
+         MQResistanceCalculation to calculates the sensor resistance in clean air.        .
 ************************************************************************************/ 
-float MQCalibration(int mq_pin, double ppm, float *pcurve )
+float MQCalibration(int mq_pin, double ppm, double rl_value,float *pcurve )
 {
   int i;
   float val=0;
 
   for (i=0;i<CALIBRATION_SAMPLE_TIMES;i++) {            //take multiple samples
-    val += MQResistanceCalculation(analogRead(mq_pin));
+    val += MQResistanceCalculation(analogRead(mq_pin),rl_value);
     delay(CALIBRATION_SAMPLE_INTERVAL);
   }
   val = val/CALIBRATION_SAMPLE_TIMES;                   //calculate the average value
@@ -454,13 +460,13 @@ Remarks: This function use MQResistanceCalculation to caculate the sensor resist
          gas. The sample times and the time interval between samples could be configured
          by changing the definition of the macros.
 ************************************************************************************/ 
-float MQRead(int mq_pin)
+float MQRead(int mq_pin,float rl_value)
 {
   int i;
   float rs=0;
  
   for (i=0;i<READ_SAMPLE_TIMES;i++) {
-    rs += MQResistanceCalculation(analogRead(mq_pin));
+    rs += MQResistanceCalculation(analogRead(mq_pin),rl_value);
     delay(READ_SAMPLE_INTERVAL);
   }
  
