@@ -112,18 +112,18 @@ unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
 float Ro0 = 4.340;    //MQ2     3.83 this has to be tuned 10K Ohm
 float RL0 = 3.000;    //MQ2     Elecfreacks Octopus
 float Ro1 = 1.755;    //MQ6    25.76 this has to be tuned 10K Ohm
-float RL1 = 0.993;     //MQ6     Gas Sensor V1.3 auto-ctrl.com 
+float RL1 = 0.993;    //MQ6     Gas Sensor V1.3 auto-ctrl.com 
 float Ro2 = 2.501;    //MQ131   2.24 this has to be tuned 10K Ohm
-float RL2 = 0.679;     //MQ131   Sainsmart
+float RL2 = 0.679;    //MQ131   Sainsmart
 float Ro3 = 2.511;    //TGS2600 0.05 this has to be tuned 10K Ohm
-float RL3 = 0.893;     //TGS2600 Sainsmart
+float RL3 = 0.893;    //TGS2600 Sainsmart
 float Ro4 = 2.511;    //MQ135   2.51 this has to be tuned 10K Ohm
-float RL4 = 0.990;     //MQ135   FC-22
+float RL4 = 0.990;    //MQ135   FC-22
 float Ro5 = 2.511;    //2SH12   
-float RL5 = 5160000;//2SH12  MQ-XL-V2 auto-ctrl.com 
+float RL5 = 5160000;  //2SH12  MQ-XL-V2 auto-ctrl.com 
 float Ro6 = 2.511;    //TGS2602 0.05 this has to be tuned 10K Ohm
 float RL6 = 10.000;   //TGS2602 Gas Sensor V1.3 auto-ctrl.com 
-int val = 0;         // variable to store the value coming from the sensor
+int val = 0;          // variable to store the value coming from the sensor
 
 
 float calcVoltage = 0;
@@ -303,7 +303,7 @@ void loop()
    Serial.print("LPG   :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR,RL0),Ro0,GAS_LPG,MQ2_SENSOR) );
    Serial.print( "ppm" );
-   Serial.print("   ");   
+   Serial.print("    ");   
    Serial.print("CO    :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ2_SENSOR,RL0),Ro0,GAS_CO_sec,MQ2_SENSOR) );
    Serial.print( "ppm" );
@@ -326,7 +326,7 @@ void loop()
    Serial.print("\n");
    //MQ131 CL2 O3
    Serial.print("MQ131  :"); 
-      Serial.print(analogRead(MQ131_SENSOR));
+//      Serial.print(analogRead(MQ131_SENSOR));
    Serial.print("CL2   :"); 
    Serial.print(MQGetGasPercentage(MQRead(MQ131_SENSOR,RL2),Ro2,GAS_CL2,MQ131_SENSOR) );
    Serial.print( "ppm" );
@@ -342,7 +342,7 @@ void loop()
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR,RL3),Ro3,GAS_H2,TGS2600_SENSOR) );
          gw.send(msg_tgs2600.set((int)ceil(MQGetGasPercentage(MQRead(TGS2600_SENSOR,RL3),Ro3,GAS_H2,TGS2600_SENSOR))));
    Serial.print( "ppm" );
-      Serial.print("  ");   
+      Serial.print("    ");   
    Serial.print("C2H5OH:"); 
    Serial.print(MQGetGasPercentage(MQRead(TGS2600_SENSOR,RL3),Ro3,GAS_C2H5OH,TGS2600_SENSOR) );
    Serial.print( "ppm" );
@@ -371,7 +371,8 @@ void loop()
    Serial.print( "ppm" );      
    Serial.print("\n");  
  //2SH12
-   Serial.print("SO2    :"); 
+   Serial.print("2SH12  :"); 
+   Serial.print("SO2   :"); 
    a=MQRead(S2SH12_SENSOR,RL5);
    Serial.print(a);   Serial.print( " raw " );      
    Serial.print("\n");  
@@ -426,8 +427,8 @@ Remarks: The sensor and the load resistor forms a voltage divider. Given the vol
 ************************************************************************************/ 
 float MQResistanceCalculation(int raw_adc,float rl_value)
 {
-//  return ( ((float)RL_VALUE*(1023-raw_adc)/raw_adc));
-  return  (long)((long)(1024*1000*(long)rl_value)/raw_adc-(long)RL_VALUE);
+//  return ( ((float)rl_value*(1023-raw_adc)/raw_adc));
+  return  (long)((long)(1024*1000*(long)rl_value)/raw_adc-(long)rl_value);
 ;
 }
  
