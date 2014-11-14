@@ -41,6 +41,7 @@
 #define         MQ136_SENSOR                 (7)
 #define         MQ138_SENSOR                 (8)
 #define         TGS2602_SENSOR               (14)
+#define         HCHO_SENSOR                  (16)
 #define         PRESSURE_SENSOR_DIGITAL_PIN  (14)
 #define         RL_VALUE                     (990) //define the load resistance on the board, in ohms
 /***********************Software Related Macros************************************/
@@ -73,6 +74,7 @@
 #define         GAS_C6H6                    (21) //Benzene
 #define         GAS_C3H8                    (22) //Propane
 #define         GAS_NHEX                    (23) //n-hexa
+#define         GAS_HCHO                    (24) //HCHO / CH2O Formaldehyde
 /*****************************Globals***********************************************/
 float           COCurve[2]      =  {37793.94418, -3.24294658};   //MQ2
 float           H2Curve[2]      =  {957.1355042, -2.07442628};   //MQ2
@@ -96,15 +98,19 @@ float           NHEX_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,20
 float           C6H6_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (2.1,200) (1,1000) (0.32,10000)
 float           C3H8_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,200) (0.8,1000) (0.28,10000)
 float           C2H5OH_terCurve[2]  =  {2142.297846, -2.751369226};//MQ138 (3,200) (1.8,1000) (0.7,10000)
-float           CH4_terCurve[2]    =  {2142.297846, -2.751369226};//MQ138 (3,200) (1.8,1000) (0.7,10000)
+float           CH4_terCurve[2] =  {2142.297846, -2.751369226};  //MQ138 (3,200) (1.8,1000) (0.7,10000)
 float           C2H5OH_secCurve[2]  =  {0.2995093465,-3.148170562};//TGS2600
 float           C4H10Curve[2]   =  {0.3555567714, -3.337882361}; //TGS2600
 float           H2_terCurve[2]  =  {0.3417050674, -2.887154835}; //TGS2600
 float           C7H8Curve[2]    =  {37.22590719,   2.078062258}; //TGS2602     (0.3;1)( 0.8;10) (0.4;30)
 float           H2S_Curve[2]    =  {0.05566582614,-2.954075758}; //TGS2602     (0.8,0.1) (0.4,1) (0.25,3)
-float           C2H5OH_quarCurve[2]  =  {0.5409499131,-2.312489623};//TGS2602   (0.75,1) (0.3,10) (0.17,30)  
-float           NH3_Curve[2]  =  {0.585030495,  -3.448654502  };//TGS2602    (0.8,1) (0.5,10) (0.3,30) 
-float           Ro              =  10000;                        //Ro is initialized to 10 kilo ohms
+float           C2H5OH_quarCurve[2]  =  {0.5409499131,-2.312489623};//TGS2602  (0.75,1) (0.3,10) (0.17,30)  
+float           NH3_Curve[2]    =  {0.585030495,  -3.448654502  }; //TGS2602   (0.8,1) (0.5,10) (0.3,30) 
+float           HCHO_Curve[2]   =  {1.478772974,  -2.224808489  }; //HCHO      (0.59,5) (0.41,10) (0.23,40) 
+float           H2_terCurve[2]  =  {2.452065204,-2.282530712};     //HCHO      (0.68,5) (0.59,10) (0.29,40) 
+float           C7H8_secCurve[2]=  {4.798168577,   -0.8100009624}; //HCHO Toluene (0.8,5)  (0.5,10)  (0.07,40)
+float           C6H6_secCurve[2]=  {5.59434996, -0.6062729607};    //HCHO benzol  (0.25,5) (0.8,10)  (0.09,40)
+float           Ro              =  10000;                          //Ro is initialized to 10 kilo ohms
 
 
 unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
@@ -561,7 +567,12 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
     }    
   } else if (sensor_id == S2SH12_SENSOR) {
     if ( gas_id == GAS_SO2 ) {
-      //return MQGetPercentage(rs_ro_ratio,ro,C2H5OHCurve);  //TGS2600
+      //return MQGetPercentage(rs_ro_ratio,ro,C2H5OHCurve);  //2SH12
+      return rs_ro_ratio;
+    }    
+  } else if (sensor_id == HCHO_SENSOR) {
+    if ( gas_id == GAS_HCHO ) {
+      //return MQGetPercentage(rs_ro_ratio,ro,HCHO_Curve);  //HCHO
       return rs_ro_ratio;
     }    
   } 
