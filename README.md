@@ -10,5 +10,5 @@ MySensors scripts
 * WaterMeterPulseSensor2.ino : for use with water meter that have a reed switch, validated 
 * MotionSensor2.ino : motion sensor
 * VibrationSensor.ino : simple vibration sensor
-* DustSensor.ino : sharp dust sensor
-* MQv01dgi.ino : MQ2 MQ6 MQ131 MQ135 TGS2600 sensors
+* DustSensor-*.ino : Dust sensors from several providers
+* MQv01dgi.ino : MQ2 MQ6 MQ131 MQ135 TGS2600 TGS2602 sensors
