@@ -1,7 +1,7 @@
 /*
   Arduino Dust Sensor for SamYoung DSM501
   connect the sensor as follows :
-      Pin 2 of dust sensor PM1      -> Digital 3 (PMW)
+          Pin 2 of dust sensor PM1      -> Digital 3 (PMW)
 	  Pin 3 of dust sensor          -> +5V 
 	  Pin 4 of dust sensor PM2.5    -> Digital 6 (PWM) 
 	  Pin 5 of dust sensor          -> Ground
@@ -18,8 +18,8 @@
 
 #define CHILD_ID_DUST_PM10            0
 #define CHILD_ID_DUST_PM25            1
-#define DUST_SENSOR_DIGITAL_PIN_PM10  3
-#define DUST_SENSOR_DIGITAL_PIN_PM25  6
+#define DUST_SENSOR_DIGITAL_PIN_PM10  6
+#define DUST_SENSOR_DIGITAL_PIN_PM25  3
 
 unsigned long SLEEP_TIME = 30*1000; // Sleep time between reads (in milliseconds)
 //VARIABLES
@@ -34,7 +34,8 @@ unsigned long endtime;
 unsigned long sampletime_ms = 30000;
 unsigned long lowpulseoccupancy = 0;
 float ratio = 0;
-float concentration = 0;
+float concentrationPM25 = 0;
+float concentrationPM10 = 0;
 
 MySensor gw;
 MyMessage dustMsgPM10(CHILD_ID_DUST_PM10, V_DUST_LEVEL);
@@ -60,16 +61,23 @@ void loop()
 {    
 
   //get PM 2.5 density of particles over 2.5 μm.
-  concentrationPM25=getPM25(DUST_SENSOR_DIGITAL_PIN_PM25);
-  if (ceil(concentrationPM25) != lastDUSTPM25) {
+  concentrationPM25=getPM(DUST_SENSOR_DIGITAL_PIN_PM25);
+    Serial.print("PM25: ");
+  Serial.println(concentrationPM25);
+  Serial.print("\n");
+
+  if ((ceil(concentrationPM25) != lastDUSTPM25)&&((int)concentrationPM25>0)) {
       gw.send(dustMsgPM25.set((int)ceil(concentrationPM25)));
-      lastDUST = ceil(concentrationPM25);
+      lastDUSTPM25 = ceil(concentrationPM25);
   }
  //get PM 1.0 - density of particles over 1 μm.
-  concentrationPM10=getPM10(DUST_SENSOR_DIGITAL_PIN_PM10);
-  if (ceil(concentrationPM10) != lastDUSTPM10) {
+  concentrationPM10=getPM(DUST_SENSOR_DIGITAL_PIN_PM10);
+  Serial.print("PM10: ");
+  Serial.println(concentrationPM10);
+  Serial.print("\n");
+  if ((ceil(concentrationPM10) != lastDUSTPM10)&&((int)concentrationPM10>0)) {
       gw.send(dustMsgPM10.set((int)ceil(concentrationPM10)));
-      lastDUST = ceil(concentrationPM10);
+      lastDUSTPM10 = ceil(concentrationPM10);
   }
  
   //sleep to save on radio
@@ -91,16 +99,16 @@ long getPM(int DUST_SENSOR_DIGITAL_PIN) {
 	  if ((endtime-starttime) > sampletime_ms)
 	  {
 		ratio = (lowpulseoccupancy-endtime+starttime)/(sampletime_ms*10.0);  // Integer percentage 0=>100
-		concentration = 1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62; // using spec sheet curve
-		Serial.print("lowpulseoccupancy:");
-		Serial.print(lowpulseoccupancy);
-		Serial.print("\n");
-		Serial.print("ratio:");
-		Serial.print(ratio);
-		Serial.print("\n");
-		Serial.print("DSM501A:");
-		Serial.println(concentration);
-		Serial.print("\n");
+		long concentration = 1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62; // using spec sheet curve
+		//Serial.print("lowpulseoccupancy:");
+		//Serial.print(lowpulseoccupancy);
+		//Serial.print("\n");
+		//Serial.print("ratio:");
+		//Serial.print(ratio);
+		//Serial.print("\n");
+		//Serial.print("DSM501A:");
+		//Serial.println(concentration);
+		//Serial.print("\n");
 		
 		lowpulseoccupancy = 0;
 		return(concentration);	  

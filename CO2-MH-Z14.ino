@@ -5,7 +5,7 @@
   Wiring:
     Pad 1, Pad 5: Vin (Voltage input 4.5V-6V) 
     Pad 2, Pad 3, Pad 12: GND 
-    Pad 6: PWM output ==> pin 7
+    Pad 6: PWM output ==> pin 6
 
 	From: http://davidegironi.blogspot.fr/2014/01/co2-meter-using-ndir-infrared-mh-z14.html
 	  MH-Z14 has a PWM output, with a sensitivity range of 0ppm to 2000ppm CO2, an accurancy of ±200ppm.
@@ -41,7 +41,7 @@ void setup()
   // Register all sensors to gateway (they will be created as child devices)
   gw.present(CHILD_ID_AIQ, S_AIR_QUALITY);  
   
-  gw.sleep(3*1000);
+  gw.sleep(30*1000);
   
   pinMode(AIQ_SENSOR_ANALOG_PIN, INPUT);
    
@@ -54,7 +54,7 @@ void loop() {
   //wait for the pin to go HIGH and measure HIGH time
   unsigned long duration = pulseIn(AIQ_SENSOR_ANALOG_PIN, HIGH);
   
-  Serial.print(duration/1000); Serial.println(" ms ");
+  //Serial.print(duration/1000); Serial.println(" ms ");
   //from datasheet
 	//CO2 ppm = 2000 * (Th - 2ms) / (Th + Tl - 4ms)
 	//  given Tl + Th = 1004
@@ -62,15 +62,15 @@ void loop() {
 	//        = 2000 * (Th - 2ms) / (Th + 1004 - Th -4ms)
 	//        = 2000 * (Th - 2ms) / 1000 = 2 * (Th - 2ms)
   long co2ppm = 2 * ((duration/1000) - 2);
-  Serial.print(co2ppm);
+  //Serial.print(co2ppm);
   if (co2ppm != lastAIQ) {
       gw.send(msg.set((long)ceil(co2ppm)));
       lastAIQ = ceil(co2ppm);
   }
   
-  Serial.println();
+  //Serial.println();
   
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
-  gw.sleep(1003); //sleep for: sleepTime
+  gw.sleep(30*1003); //sleep for: sleepTime
 }
