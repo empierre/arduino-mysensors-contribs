@@ -6,7 +6,15 @@
   
  Sensor and calibration:
 	DIY: See http://vanderleevineyard.com/1/category/vinduino/1.html
-	Built: Davis / Watermark 200SS http://www.cooking-hacks.com/watermark-soil-moisture-sensor?_bksrc=item2item&_bkloc=product
+	Built: Davis / Watermark 200SS 
+		http://www.cooking-hacks.com/watermark-soil-moisture-sensor?_bksrc=item2item&_bkloc=product
+		http://www.irrometer.com/pdf/supportmaterial/sensors/voltage-WM-chart.pdf
+		cb (centibar) http://www.irrometer.com/basics.html
+			0-10 Saturated Soil. Occurs for a day or two after irrigation 
+			10-20 Soil is adequately wet (except coarse sands which are drying out at this range) 
+			30-60 Usual range to irrigate or water (except heavy clay soils). 
+			60-100 Usual range to irrigate heavy clay soils 
+			100-200 Soil is becoming dangerously dry for maximum production. Proceed with caution. 
   
  Connection:
 	D6, D7: alternative powering to avoid sensor degradation
