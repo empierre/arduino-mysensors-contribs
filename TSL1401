@@ -3,7 +3,10 @@
   datasheet: http://www.ams.com/eng/content/download/250163/975677/file/TSL1401CL.pdf
   
   trace: http://ap.urpi.fei.stuba.sk/sensorwiki/index.php/TSL1401_Line_Sensor
-  other ino: http://forums.parallax.com/showthread.php/125594-TSL1401-and-Arduino
+  other inos:
+    - http://forums.parallax.com/showthread.php/125594-TSL1401-and-Arduino
+    - https://github.com/ap-tech/Getting-started-with-the-TSL1401CL-linescan-camera-with-arduino-and-processing.-/blob/master/TSL1401CL%20linescan%20camera%20code./Linescane_camera_code/Linescane_camera_code.ino
+    
   
 */
 
