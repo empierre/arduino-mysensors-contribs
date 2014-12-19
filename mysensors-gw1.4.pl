@@ -82,9 +82,9 @@ while(1) {
                 if ($radioId>=0) {
                         print FIC "$date $radioId $childId $messageType $ack $subType $payload\n";
                 }
-                if (($messageType==4)&&($subType==5)) {
+                if (($messageType==3)&&($subType==3)) {
 			#Answer the node ID
-                        my $msg = "$radioId;$childId;4;0;5;8\n";
+                        my $msg = "$radioId;$childId;3;0;4;9\n";
                         my $co = $ob->write($msg);
                         warn "write failed\n" unless ($co);
                         print "$date W ($co) : $msg \n";
@@ -134,9 +134,25 @@ while(1) {
 			# save a VAR
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
-			if ($radioId==3) {
+			if ($radioId==7) {
 				print "sending to DZ 124 $payload\n";
 				`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=124&nvalue=$payload" &`;
+			}
+		}
+ 		if (($messageType==1)&&($subType==37)) {
+			# save a DUST_LEVEL
+			$sensor_tab{$radioId}->{$subType}=$payload;
+			&update_or_insert($radioId,$subType,$payload);
+			if ($radioId==3) {
+				if ($childId==0) {#PM10
+					print "sending to DZ 208 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
+
+				} elsif ($childId=1) {#PM25
+					print "sending to DZ 231 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=231&nvalue=$payload" &`;
+
+				}
 			}
 		}
  		if (($messageType==1)&&($subType>=40)) {
@@ -145,14 +161,26 @@ while(1) {
 			&update_or_insert($radioId,$subType,$payload);
 			if ($radioId==8) {
 				if ($subType==40) {
-					print "sending $payload to DZ 208 $payload\n";
-					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
+					print "sending $payload to DZ 223 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=223&nvalue=$payload" &`;
 				} elsif ($subType==41) {
-					print "sending $payload to DZ 209 $payload\n";
-					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
+					print "sending $payload to DZ 224 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=224&nvalue=$payload" &`;
 				} elsif ($subType==42) {
+					print "sending $payload to DZ 210 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=210&nvalue=$payload" &`;
+				} elsif ($subType==43) {
+					#print "sending $payload to DZ 209 $payload\n";
+					#`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=209&nvalue=$payload" &`;
+				} elsif ($subType==44) {
 					print "sending $payload to DZ 209 $payload\n";
 					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=209&nvalue=$payload" &`;
+				} elsif ($subType==45) {
+					print "sending $payload to DZ 208 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
+				} elsif ($subType==46) {
+					print "sending $payload to DZ 222 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=222&nvalue=$payload" &`;
 				}
 			}
 		}
