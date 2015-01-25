@@ -63,7 +63,7 @@ void loop() {
 	//        = 2000 * (Th - 2ms) / 1000 = 2 * (Th - 2ms)
   long co2ppm = 2 * ((duration/1000) - 2);
   //Serial.print(co2ppm);
-  if (co2ppm != lastAIQ) {
+  if ((co2ppm != lastAIQ)&&(abs(co2ppm-lastAIQ)>=10)) {
       gw.send(msg.set((long)ceil(co2ppm)));
       lastAIQ = ceil(co2ppm);
   }

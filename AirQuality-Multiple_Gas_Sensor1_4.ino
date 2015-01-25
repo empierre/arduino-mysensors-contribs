@@ -107,7 +107,7 @@ float           H2S_Curve[2]    =  {0.05566582614,-2.954075758}; //TGS2602     (
 float           C2H5OH_quarCurve[2]  =  {0.5409499131,-2.312489623};//TGS2602  (0.75,1) (0.3,10) (0.17,30)  
 float           NH3_Curve[2]    =  {0.585030495,  -3.448654502  }; //TGS2602   (0.8,1) (0.5,10) (0.3,30) 
 float           HCHO_Curve[2]   =  {1.478772974,  -2.224808489  }; //HCHO      (0.59,5) (0.41,10) (0.23,40) 
-float           H2_terCurve[2]  =  {2.452065204,-2.282530712};     //HCHO      (0.68,5) (0.59,10) (0.29,40) 
+float           H2_quaCurve[2]  =  {2.452065204,-2.282530712};     //HCHO      (0.68,5) (0.59,10) (0.29,40) 
 float           C7H8_secCurve[2]=  {4.798168577,   -0.8100009624}; //HCHO Toluene (0.8,5)  (0.5,10)  (0.07,40)
 float           C6H6_secCurve[2]=  {5.59434996, -0.6062729607};    //HCHO benzol  (0.25,5) (0.8,10)  (0.09,40)
 float           Ro              =  10000;                          //Ro is initialized to 10 kilo ohms
@@ -379,10 +379,10 @@ void loop()
  //2SH12
    Serial.print("2SH12  :"); 
    Serial.print("SO2   :"); 
-   a=MQRead(S2SH12_SENSOR,RL5);
+   a=analogRead(S2SH12_SENSOR);
    Serial.print(a);   Serial.print( " raw " );      
    Serial.print("\n");  
-    gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR,RL5))));
+    gw.send(msg_2sh12.set((int)ceil(analogRead(S2SH12_SENSOR))));
  //TGS2602 C7H8
    Serial.print("TGS2602:"); 
    Serial.print("C7H8  :"); 
@@ -593,7 +593,7 @@ int  MQGetPercentage(float rs_ro_ratio, float ro, float *pcurve)
   return (double)(pcurve[0] * pow(((double)rs_ro_ratio/ro), pcurve[1]));
 }
 
-/*****************************  MQGetPercentage **********************************
+/**********************************  sample  ***************************************
 Input:   pressure 
 Output:  an int containing the weather based on pressure
 ************************************************************************************/ 

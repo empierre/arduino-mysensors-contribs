@@ -5,7 +5,7 @@
 #define CHILD_ID 0   // Id of the sensor child
 
 MySensor gw;
-unsigned long SLEEP_TIME = 10000;  // sleep time between reads (seconds * 1000 milliseconds)
+unsigned long SLEEP_TIME = 30*1000;  // sleep time between reads (seconds * 1000 milliseconds)
 MyMessage msg(CHILD_ID, V_TRIPPED);
 int lastSoilValue = -1;
 
