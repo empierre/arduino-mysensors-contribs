@@ -2,7 +2,7 @@
 #  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
 use warnings;
 use strict;
-use POSIX qw(strftime);
+use POSIX qw(strftime ceil floor);
 use Device::SerialPort;
 use IO::Handle;
 use DateTime;
@@ -12,7 +12,7 @@ use Config::Simple;
 
 # Initialization strings
 my $base="/home/cubie/";
-my $conf="/home/cubie/domoticz-epi/.conf-mysensors";
+my $conf="/home/cubie/.conf-mysensors";
 my $ccnt;
 my $cfg;
 my ($count, $string, $radioId, $value);
@@ -130,8 +130,17 @@ while(1) {
 			print "sending to DZ 164 $payload\n";
 			`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=164&svalue=$temp;$payload;2" &`;
 		}
+                if (($messageType==1)&&($subType==16)) {
+			# Read the leaf wetness 
+			$sensor_tab{$radioId}->{$subType}=$payload;
+			&update_or_insert($radioId,$subType,$payload);
+			my $val=100-($payload);my $h=1;
+			if ($val>50) {$h=2} elsif ($val<25) {$h=0} else {$h=1};
+			print "sending to DZ 243 $val\n";
+			`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=243&nvalue=$val&svalue=$val;$h" &`;
+		}
  		if (($messageType==1)&&($subType==24)) {
-			# save a VAR
+			# AqCO2
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
 			if ($radioId==7) {
@@ -145,12 +154,23 @@ while(1) {
 			&update_or_insert($radioId,$subType,$payload);
 			if ($radioId==3) {
 				if ($childId==0) {#PM10
+					print "sending to DZ 244 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=244&nvalue=$payload" &`;
+
+				} elsif ($childId=1) {#PM25
+					print "sending to DZ 245 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=245&nvalue=$payload" &`;
+
+				}
+			}
+			if ($radioId==6) {
+				if ($childId==0) {#PM10
 					print "sending to DZ 208 $payload\n";
 					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
 
 				} elsif ($childId=1) {#PM25
-					print "sending to DZ 231 $payload\n";
-					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=231&nvalue=$payload" &`;
+					print "sending to DZ 225 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=225&nvalue=$payload" &`;
 
 				}
 			}
@@ -160,27 +180,27 @@ while(1) {
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
 			if ($radioId==8) {
-				if ($subType==40) {
+				if ($subType==40) {#Smoke
 					print "sending $payload to DZ 223 $payload\n";
 					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=223&nvalue=$payload" &`;
-				} elsif ($subType==41) {
-					print "sending $payload to DZ 224 $payload\n";
-					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=224&nvalue=$payload" &`;
-				} elsif ($subType==42) {
+				} elsif ($subType==41) {#LPG
+					print "sending $payload to DZ 226 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=226&nvalue=$payload" &`;
+				} elsif ($subType==42) {#O3
 					print "sending $payload to DZ 210 $payload\n";
 					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=210&nvalue=$payload" &`;
-				} elsif ($subType==43) {
-					#print "sending $payload to DZ 209 $payload\n";
-					#`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=209&nvalue=$payload" &`;
-				} elsif ($subType==44) {
+				} elsif ($subType==43) {#H2
+					#print "sending $payload to DZ 235 $payload\n";
+					#`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=235&nvalue=$payload" &`;
+				} elsif ($subType==44) {#CO
 					print "sending $payload to DZ 209 $payload\n";
 					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=209&nvalue=$payload" &`;
-				} elsif ($subType==45) {
-					print "sending $payload to DZ 208 $payload\n";
-					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
-				} elsif ($subType==46) {
-					print "sending $payload to DZ 222 $payload\n";
-					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=222&nvalue=$payload" &`;
+				} elsif ($subType==45) {#PM10
+					#print "sending $payload to DZ 208 $payload\n";
+					#`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=208&nvalue=$payload" &`;
+				} elsif ($subType==46) {#SO2
+					print "sending $payload to DZ 224 $payload\n";
+					`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=224&nvalue=$payload" &`;
 				}
 			}
 		}
@@ -192,7 +212,7 @@ while(1) {
 			`curl -s "http://$domo_ip:$domo_port/json.htm?type=command&param=udevice&idx=198&svalue=$payload" &`;
 		}
  		if (($messageType==1)&&($subType==35)) {
-			# Read the Temp value
+			# Watermeter
 			$sensor_tab{$radioId}->{$subType}=$payload;
 			&update_or_insert($radioId,$subType,$payload);
 			my $hum=$sensor_tab{$radioId}->{1}||0;
