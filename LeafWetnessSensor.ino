@@ -25,7 +25,7 @@ void loop()
 
    
   // Read digital soil value
-  int soilValue = (analogRead(ANALOG_INPUT_LEAFWETNESS_SENSOR)*100/1023);  
+  int soilValue = ((float)analogRead(ANALOG_INPUT_LEAFWETNESS_SENSOR)*100/1023);  
   if (soilValue != lastSoilValue) {
     Serial.println(soilValue);
     gw.send(msg.set(soilValue));  // Send the inverse to gw as tripped should be when no water in soil
