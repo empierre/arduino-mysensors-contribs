@@ -93,9 +93,11 @@ float           NH4Curve[2]     =  {84.07117895, -4.41107687};   //MQ135
 float           C2H50H_Curve[2] =  {74.77989144, 3.010328075};   //MQ135 
 float           CH3Curve[2]     =  {47.01770503, -3.281901967};  //MQ135
 float           CH3_2COCurve[2] =  {7.010800878, -2.122018939};  //MQ135
-float           SO2_Curve[2]    =  {40.44109566, -1.085728557};  //MQ136
-float           CH4_secCurve[2] =  {57.82777729, -1.187494933};  //MQ136
-float           CO_terCurve[2]  =  {2142.297846, -2.751369226};  //MQ136
+float           SO2_Curve[2]    =  {40.44109566, -1.085728557};  //MQ136 http://china-total.com/product/meter/gas-sensor/MQ136.pdf
+float           CH4_secCurve[2] =  {57.82777729, -1.187494933};  //MQ136 http://china-total.com/product/meter/gas-sensor/MQ136.pdf
+float           CO_terCurve[2]  =  {2142.297846, -2.751369226};  //MQ136 http://china-total.com/product/meter/gas-sensor/MQ136.pdf
+float           H2S_secCurve[2] =  {,}; //MQ136 http://www.sensorica.ru/pdf/MQ-136.pdf
+float           NH4_secCurve[2] =  {,};   //MQ136 http://www.sensorica.ru/pdf/MQ-136.pdf
 float           NHEX_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,200) (0.8,1000) (0.28,10000)
 float           C6H6_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (2.1,200) (1,1000) (0.32,10000)
 float           C3H8_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,200) (0.8,1000) (0.28,10000)
@@ -130,7 +132,7 @@ float RL4 = 0.990;    //MQ135   FC-22
 float Ro5 = 2.511;    //2SH12   
 float RL5 = 4000;     //2SH12   MQ-XL-V2 auto-ctrl.com 
 float Ro6 = 2.511;    //TGS2602 0.05 this has to be tuned 10K Ohm
-float RL6 = 0.893;    //TGS2602 Gas Sensor V1.3 auto-ctrl.com 
+float RL6 = 0.893;    //TGmq136S2602 Gas Sensor V1.3 auto-ctrl.com 
 int val = 0;          // variable to store the value coming from the sensor
 
 
