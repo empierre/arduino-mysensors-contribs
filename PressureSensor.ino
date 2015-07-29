@@ -4,7 +4,7 @@
  Contribution: epierre
  
  G      GND
- V      VCC 5V
+ V      VCC 5V/3.3V
  SCL    A4
  SDA    A5
 
@@ -14,6 +14,8 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
+
+float myAltitude = 45;
 
 #define CHILD_ID_PRESSURE 0
 #define CHILD_ID_TEMP 1
@@ -45,7 +47,7 @@ void setup() {
   // Send the sketch version information to the gateway and Controller
   gw.sendSketchInfo("Pressure Sensor", "1.0");
 
-  if (!bmp.begin()) {
+  if (!bmp.begin(BMP085_ULTRAHIGHRES)) {
     Serial.println("Could not find a valid BMP085 sensor, check wiring!");
     while (1) { }
   }
@@ -60,7 +62,10 @@ void setup() {
 
 
 void loop() {
-  float pressure = bmp.readPressure()/100;
+
+  //BMP085 pressure from adafruit gives you absolute pressure, that is NOT the barometric pressure the meteo forecast shows. You have to recalculate it by the following equation.
+  float pressure_raw = bmp.readPressure();
+  float pressure = pressure_raw/pow((1.0 - ( myAltitude/44330.0 )), 5.255);
   float temperature = bmp.readTemperature();
   float altitude = bmp.readAltitude();
   
@@ -88,7 +93,7 @@ void loop() {
   }
 
   if (pressure != lastPressure) {
-    gw.send(pressureMsg.set(pressure,0));
+    gw.send(pressureMsg.set(pressure,1));
     lastPressure = pressure;
   }
 
