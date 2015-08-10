@@ -1,10 +1,9 @@
 /*
 
-  Arduino soild mostire based on gypsum sensor
+  Arduino soild mosture based on gypsum sensor/resistive sensor to avoid electric catalyse in soil
+  Required to interface the sensor: 2 * 4.7kOhm + 2 * 1N4148
 
-  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
-  
- Sensor and calibration:
+Sensor and calibration:
 	DIY: See http://vanderleevineyard.com/1/category/vinduino/1.html
 	Built: Davis / Watermark 200SS 
 		http://www.cooking-hacks.com/watermark-soil-moisture-sensor?_bksrc=item2item&_bkloc=product
@@ -18,7 +17,7 @@
   
  Connection:
 	D6, D7: alternative powering to avoid sensor degradation
-	A0, A1: alternative resisnatce mseuring
+	A0, A1: alternative resistance mesuring
 
   Contributor: epierre
 
@@ -28,30 +27,41 @@
    Reinier van der Lee and Theodore Kaskalis
    www.vanderleevineyard.com
  */
- 
-#include <SPI.h>
-#include <MySensor.h>  
-#include <math.h>
 
-#define NUM_READS 11    // Number of sensor reads for filtering
+// Copyright (C) 2015, Reinier van der Lee
+// www.vanderleevineyard.com
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+#include <math.h>       // Conversion equation from resistance to %
+#include <SPI.h>
+#include <MySensor.h>
+
+// Setting up format for reading 3 soil sensors
+#define NUM_READS 10    // Number of sensor reads for filtering
 #define CHILD_ID 0
 
 MySensor gw();  // Arduino initialization
 MyMessage msg(CHILD_ID, V_HUM);  
 unsigned long SLEEP_TIME = 30000; // Sleep time between reads (in milliseconds)
 
+long buffer[NUM_READS];
+int index;
 
 typedef struct {        // Structure to be used in percentage and resistance values matrix to be filtered (have to be in pairs)
   int moisture;
   long resistance;
 } values;
 
-
-const long knownResistor = 1200;  // Constant value of known resistor in Ohms
-
-int activeDigitalPin = 6;         // 6 or 7 interchangeably
-int supplyVoltageAnalogPin;       // 6-ON: A0, 7-ON: A1
-int sensorVoltageAnalogPin;       // 6-ON: A1, 7-ON: A0
+const long knownResistor = 4700;  // Constant value of known resistor in Ohms
 
 int supplyVoltage;                // Measured supply voltage
 int sensorVoltage;                // Measured sensor voltage
@@ -62,13 +72,12 @@ int i;                            // Simple index variable
 
 void setup() {
   // initialize serial communications at 9600 bps:
-  Serial.begin(115200); 
-  
+  Serial.begin(115200);
   gw.begin();
-  
-  gw.sendSketchInfo("Soil Moisture Sensor Gypsum", "1.0");
+  gw.sendSketchInfo("Soil Moisture Sensor Reverse Polarity", "1.0");
   gw.present(CHILD_ID, S_HUM);  
-  
+  // initialize the digital pins as an output.
+  // Pin 6,7 is for sensor 1
   // initialize the digital pin as an output.
   // Pin 6 is sense resistor voltage supply 1
   pinMode(6, OUTPUT);    
@@ -77,72 +86,81 @@ void setup() {
   // Pin 7 is sense resistor voltage supply 2
   pinMode(7, OUTPUT);   
 
-  delay(500);   
+
 }
 
 void loop() {
 
+	measure(1,6,7,1);
+	Serial.print ("\t");
+	Serial.println (average());
+	long read1 = average();
+
+	measure(1,7,6,0);
+	Serial.print ("\t");
+	Serial.println (average());
+	long read2= average();
+
+	long sensor1 = (read1 + read2)/2;
+
+	Serial.print ("resistance bias =" );
+	Serial.println (read1-read2);
+	Serial.print ("sensor bias compensated value = ");
+	Serial.println (sensor1);
+	Serial.println ();
+	
+	//send back the values
+	gw.send(msg.set((long int)ceil(sensor1)));
+	// delay until next measurement (msec)
+    gw.sleep(SLEEP_TIME);
+}
+
+void measure (int sensor, int phase_b, int phase_a, int analog_input)
+{
   // read sensor, filter, and calculate resistance value
   // Noise filter: median filter
 
   for (i=0; i<NUM_READS; i++) {
 
-		setupCurrentPath();      // Prepare the digital and analog pin values
+    // Read 1 pair of voltage values
+    digitalWrite(phase_a, HIGH);                 // set the voltage supply on
+    delayMicroseconds(25);
+    supplyVoltage = analogRead(analog_input);   // read the supply voltage
+    delayMicroseconds(25);
+    digitalWrite(phase_a, LOW);                  // set the voltage supply off
+    delay(1);
 
-		// Read 1 pair of voltage values
-		digitalWrite(activeDigitalPin, HIGH);                 // set the voltage supply on
-		delay(10);
-		supplyVoltage = analogRead(supplyVoltageAnalogPin);   // read the supply voltage
-		sensorVoltage = analogRead(sensorVoltageAnalogPin);   // read the sensor voltage
-		digitalWrite(activeDigitalPin, LOW);                  // set the voltage supply off  
-		delay(10); 
+    digitalWrite(phase_b, HIGH);                 // set the voltage supply on
+    delayMicroseconds(25);
+    sensorVoltage = analogRead(analog_input);   // read the sensor voltage
+    delayMicroseconds(25);
+    digitalWrite(phase_b, LOW);                  // set the voltage supply off
 
-		// Calculate resistance and moisture percentage without overshooting 100
-		// the 0.5 add-term is used to round to the nearest integer
-		// Tip: no need to transform 0-1023 voltage value to 0-5 range, due to following fraction
-		valueOf[i].resistance = long( float(knownResistor) * ( supplyVoltage - sensorVoltage ) / sensorVoltage + 0.5 );
-		valueOf[i].moisture = min( int( pow( valueOf[i].resistance/31.65 , 1.0/-1.695 ) * 400 + 0.5 ) , 100 );
-		//  valueOf[i].moisture = min( int( pow( valueOf[i].resistance/331.55 , 1.0/-1.695 ) * 100 + 0.5 ) , 100 );
+    // Calculate resistance
+    // the 0.5 add-term is used to round to the nearest integer
+    // Tip: no need to transform 0-1023 voltage value to 0-5 range, due to following fraction
+    long resistance = (knownResistor * (supplyVoltage - sensorVoltage ) / sensorVoltage) ;
 
-    }
-  // end of multiple read loop
-  
-  // Sort the moisture-resistance vector according to moisture
-  sortMoistures();
-
-  // Print out median values
-  Serial.print("sensor resistance = ");
-  Serial.println(valueOf[NUM_READS/2].resistance);
-  gw.send(msg.set((long int)ceil(valueOf[NUM_READS/2].resistance)));
-
-  
-  // delay until next measurement (msec)
-  gw.sleep(SLEEP_TIME);
-
-}
-
-void setupCurrentPath() {
-  if ( activeDigitalPin == 6 ) {
-    activeDigitalPin = 7;
-    supplyVoltageAnalogPin = A1;
-    sensorVoltageAnalogPin = A0;
-  }
-  else {
-    activeDigitalPin = 6;
-    supplyVoltageAnalogPin = A0;
-    sensorVoltageAnalogPin = A1;
+    delay(1);
+    addReading(resistance);
+    Serial.print (resistance);
+    Serial.print ("\t");
   }
 }
 
-// Selection sort algorithm
-void sortMoistures() {
-  int j;
-  values temp;
-  for(i=0; i<NUM_READS-1; i++)
-    for(j=i+1; j<NUM_READS; j++)
-      if ( valueOf[i].moisture > valueOf[j].moisture ) {
-        temp = valueOf[i];
-        valueOf[i] = valueOf[j];
-        valueOf[j] = temp;
-      }
+
+
+// Averaging algorithm
+void addReading(long resistance){
+  buffer[index] = resistance;
+  index++;
+  if (index >= NUM_READS) index = 0;
+}
+
+long average(){
+  long sum = 0;
+  for (int i = 0; i < NUM_READS; i++){
+    sum += buffer[i];
+  }
+  return (long)(sum / NUM_READS);
 }
