@@ -38,7 +38,7 @@ const float VccMax        = 1.0*4.2;  // Maximum expected Vcc level, in Volts.
 
 #define LIGHT_SENSOR_ANALOG_PIN 3   // Digital input did you attach your soil sensor.  
 #define CHILD_ID_LIGHT 0   // Id of the sensor child
-#define CHILD_ID_UV 0
+#define CHILD_ID_UV 1
 #define BATT_CHILD_ID 10
 #define SOLAR_CHILD_ID 11
 #define UV_SENSOR_ANALOG_PIN 3

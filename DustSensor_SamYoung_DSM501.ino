@@ -34,8 +34,8 @@ unsigned long endtime;
 unsigned long sampletime_ms = 30000;
 unsigned long lowpulseoccupancy = 0;
 float ratio = 0;
-float concentrationPM25 = 0;
-float concentrationPM10 = 0;
+long concentrationPM25 = 0;
+long concentrationPM10 = 0;
 
 MySensor gw;
 MyMessage dustMsgPM10(CHILD_ID_DUST_PM10, V_DUST_LEVEL);
@@ -61,13 +61,13 @@ void loop()
 {    
 
   //get PM 2.5 density of particles over 2.5 μm.
-  concentrationPM25=getPM(DUST_SENSOR_DIGITAL_PIN_PM25);
-    Serial.print("PM25: ");
+  concentrationPM25=(long)getPM(DUST_SENSOR_DIGITAL_PIN_PM25);
+  Serial.print("PM25: ");
   Serial.println(concentrationPM25);
   Serial.print("\n");
 
-  if ((ceil(concentrationPM25) != lastDUSTPM25)&&((int)concentrationPM25>0)) {
-      gw.send(dustMsgPM25.set((int)ceil(concentrationPM25)));
+  if ((concentrationPM25 != lastDUSTPM25)&&(concentrationPM25>0)) {
+      gw.send(dustMsgPM25.set((long)ceil(concentrationPM25)));
       lastDUSTPM25 = ceil(concentrationPM25);
   }
  //get PM 1.0 - density of particles over 1 μm.
@@ -75,8 +75,8 @@ void loop()
   Serial.print("PM10: ");
   Serial.println(concentrationPM10);
   Serial.print("\n");
-  if ((ceil(concentrationPM10) != lastDUSTPM10)&&((int)concentrationPM10>0)) {
-      gw.send(dustMsgPM10.set((int)ceil(concentrationPM10)));
+  if ((ceil(concentrationPM10) != lastDUSTPM10)&&((long)concentrationPM10>0)) {
+      gw.send(dustMsgPM10.set((long)ceil(concentrationPM10)));
       lastDUSTPM10 = ceil(concentrationPM10);
   }
  

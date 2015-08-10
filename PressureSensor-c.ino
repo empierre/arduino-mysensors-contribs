@@ -19,7 +19,8 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP085_U.h>
 
-float seaLevelPressure = 1013;
+//float seaLevelPressure = 1013;
+float myAltitude = 45;
 
 #define LTC4067_CHRG_PIN	A1		//analog input A1 on ATmega 328 is /CHRG signal from LTC4067
 #define batteryVoltage_PIN	A0		//analog input A0 on ATmega328 is battery voltage ( /2)
@@ -88,7 +89,7 @@ void setup() {
   pinMode(LTC4067_SUSPEND_PIN, OUTPUT);					// suspend of Lion charger set
   digitalWrite(LTC4067_SUSPEND_PIN, LOW);
 
-  if (!bmp.begin()) {
+  if (!bmp.begin(BMP085_MODE_ULTRAHIGHRES)) {
     Serial.println("Could not find a valid BMP085 sensor, check wiring!");
     while (1) { }
   }
@@ -109,18 +110,21 @@ void loop() {
   sensors_event_t event;
   bmp.getEvent(&event);
 
+  float pressure_raw;
   float pressure;
   float temperature;
   float altitude;
   
   if (event.pressure) {
-      pressure = event.pressure;
+      pressure_raw = event.pressure;
+      //BMP085 pressure from adafruit gives you absolute pressure, that is NOT the barometric pressure the meteo forecast shows. You have to recalculate it by the above equation into the p0.
+      pressure = pressure_raw/pow((1.0 - ( myAltitude/44330.0 )), 5.255);
       
       bmp.getTemperature(&temperature);
       
-      altitude = bmp.pressureToAltitude(seaLevelPressure,
-                                        event.pressure
-                                        );
+//      altitude = bmp.pressureToAltitude(seaLevelPressure,
+//                                        event.pressure
+//                                        );
                                         
   }
 
@@ -138,8 +142,8 @@ void loop() {
   Serial.print(pressure);
   Serial.println(" hPa");
   Serial.println(weather[forecast]);
-  Serial.print("Altitude = ");
-  Serial.print(altitude);
+  //Serial.print("Altitude = ");
+  //Serial.print(altitude);
 
 
   if (ceil(temperature) != ceil(lastTemp)) {
