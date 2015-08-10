@@ -21,6 +21,11 @@ Environmental sensors:
 * SoilMoistSensorGypsum.ino: not tested
 * SoilMoistSensorSHT1x.ino: validated, sensor cannot be burried
 
+Variants for ceech board (Solar pannel + LiOn/LiPo NRF24L compatible board):
+* PressureSensor-c.ino
+* LuxUVSensor-c.ino
+* LuxSensor-c.ino 
+
 Energy sensors
 * WaterMeterPulseSensor2.ino : for use with water meter that have a reed switch, validated 
-
+* WaterMeterPulseSensor2-gs.ino : water meter with GreyScale Dfrobot sensor for Residia Jet water meter
