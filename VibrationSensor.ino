@@ -9,8 +9,6 @@
 
   Based on: http://www.dfrobot.com/wiki/index.php/DFRobot_Digital_Vibration_Sensor_V2_SKU:DFR0027
   Contribution: epierre
-  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
-
 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -46,7 +44,7 @@ void setup()
   gw.sendSketchInfo("VIBRATION Sensor", "1.0");
 
   // Register all sensors to gateway (they will be created as child devices)
-  gw.present(CHILD_ID_VIBRATION, S_CUSTOM);
+  gw.present(CHILD_ID_VIBRATION, S_VIBRATION);
 
   
   pinMode(VIBRATION_SENSOR_DIGITAL_PIN, INPUT);

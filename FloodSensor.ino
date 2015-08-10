@@ -1,8 +1,8 @@
 /* Flood Sensor
+
  This sketch will light up the LED on Pin 13, when water (anything conductive) bridges the gap in the sensor.
   
-   created 05-18-2012
-   by PvE
+   created 05-18-2012 by PvE
    Contributor: epierre
       
  */
@@ -36,7 +36,7 @@ long debounceDelay = 50;    // the debounce time; increase if the output flicker
   gw.sendSketchInfo("Flood Sensor", "1.0");
 
   // Register all sensors to gateway (they will be created as child devices)
-  gw.present(FLOOD_SENSOR_ANALOG_PIN, S_MOTION);  
+  gw.present(FLOOD_SENSOR_ANALOG_PIN, S_WATER_LEAK);  
   
   // initialize the flood Sensor pin as an input:
    pinMode(FLOOD_SENSOR_ANALOG_PIN, INPUT);    

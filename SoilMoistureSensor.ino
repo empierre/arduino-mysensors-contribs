@@ -49,7 +49,7 @@ Sensor and calibration:
 #define NUM_READS 10    // Number of sensor reads for filtering
 #define CHILD_ID 0
 
-MySensor gw();  // Arduino initialization
+MySensor gw;  // Arduino initialization
 MyMessage msg(CHILD_ID, V_HUM);  
 unsigned long SLEEP_TIME = 30000; // Sleep time between reads (in milliseconds)
 

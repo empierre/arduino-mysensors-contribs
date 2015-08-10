@@ -37,7 +37,7 @@ float valAIQ =0.0;
 float lastAIQ =0.0;
 
 MySensor gw;
-MyMessage msg(CHILD_ID_AIQ, V_VAR1);
+MyMessage msg(CHILD_ID_AIQ, V_LEVEL);
 
 void setup()  
 {

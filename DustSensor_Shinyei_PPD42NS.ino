@@ -41,8 +41,8 @@ long concentrationPM25 = 0;
 long concentrationPM10 = 0;
 
 MySensor gw;
-MyMessage dustMsgPM10(CHILD_ID_DUST_PM10, V_DUST_LEVEL);
-MyMessage dustMsgPM25(CHILD_ID_DUST_PM25, V_DUST_LEVEL);
+MyMessage dustMsgPM10(CHILD_ID_DUST_PM10, V_LEVEL);
+MyMessage dustMsgPM25(CHILD_ID_DUST_PM25, V_LEVEL);
 
 void setup()  
 {
