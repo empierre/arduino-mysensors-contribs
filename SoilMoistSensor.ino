@@ -1,32 +1,51 @@
-/*
-
-  Arduino soild mosture based on gypsum sensor/resistive sensor to avoid electric catalyse in soil
-  Required to interface the sensor: 2 * 4.7kOhm + 2 * 1N4148
-
-Sensor and calibration:
-	DIY: See http://vanderleevineyard.com/1/category/vinduino/1.html
-	Built: Davis / Watermark 200SS 
-		http://www.cooking-hacks.com/watermark-soil-moisture-sensor?_bksrc=item2item&_bkloc=product
-		http://www.irrometer.com/pdf/supportmaterial/sensors/voltage-WM-chart.pdf
-		cb (centibar) http://www.irrometer.com/basics.html
-			0-10 Saturated Soil. Occurs for a day or two after irrigation 
-			10-20 Soil is adequately wet (except coarse sands which are drying out at this range) 
-			30-60 Usual range to irrigate or water (except heavy clay soils). 
-			60-100 Usual range to irrigate heavy clay soils 
-			100-200 Soil is becoming dangerously dry for maximum production. Proceed with caution. 
-  
- Connection:
-	D6, D7: alternative powering to avoid sensor degradation
-	A0, A1: alternative resistance mesuring
-
-  Contributor: epierre
-
-  Based on:	
-   "Vinduino" portable soil moisture sensor code V3.00
-   Date December 31, 2012
-   Reinier van der Lee and Theodore Kaskalis
-   www.vanderleevineyard.com
- */
+/**
+ * The MySensors Arduino library handles the wireless radio link and protocol
+ * between your home built sensors/actuators and HA controller of choice.
+ * The sensors forms a self healing radio network with optional repeaters. Each
+ * repeater and gateway builds a routing tables in EEPROM which keeps track of the
+ * network topology allowing messages to be routed to nodes.
+ *
+ * Created by Henrik Ekblad <henrik.ekblad@mysensors.org>
+ * Copyright (C) 2013-2015 Sensnology AB
+ * Full contributor list: https://github.com/mysensors/Arduino/graphs/contributors
+ *
+ * Documentation: http://www.mysensors.org
+ * Support Forum: http://forum.mysensors.org
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ *******************************
+ *
+ * DESCRIPTION
+ *
+ * Arduino soil moisture based on gypsum sensor/resistive sensor to avoid electric catalyse in soil
+ *  Required to interface the sensor: 2 * 4.7kOhm + 2 * 1N4148
+ * 
+ * Gypsum sensor and calibration: 
+ *	DIY: See http://vanderleevineyard.com/1/category/vinduino/1.html
+ *	Built: Davis / Watermark 200SS 
+ *		http://www.cooking-hacks.com/watermark-soil-moisture-sensor?_bksrc=item2item&_bkloc=product
+ *		http://www.irrometer.com/pdf/supportmaterial/sensors/voltage-WM-chart.pdf
+ *		cb (centibar) http://www.irrometer.com/basics.html
+ *			0-10 Saturated Soil. Occurs for a day or two after irrigation 
+ *			10-20 Soil is adequately wet (except coarse sands which are drying out at this range) 
+ *			30-60 Usual range to irrigate or water (except heavy clay soils). 
+ *			60-100 Usual range to irrigate heavy clay soils 
+ *			100-200 Soil is becoming dangerously dry for maximum production. Proceed with caution. 
+ * 
+ * Connection:
+ *  D6, D7: alternative powering to avoid sensor degradation
+ * A0, A1: alternative resistance mesuring
+ *
+ *  Based on:	
+ *  "Vinduino" portable soil moisture sensor code V3.00
+ *   Date December 31, 2012
+ *   Reinier van der Lee and Theodore Kaskalis
+ *   www.vanderleevineyard.com
+ * Contributor: epierre
+**/
 
 // Copyright (C) 2015, Reinier van der Lee
 // www.vanderleevineyard.com
@@ -50,7 +69,7 @@ Sensor and calibration:
 #define CHILD_ID 0
 
 MySensor gw;  // Arduino initialization
-MyMessage msg(CHILD_ID, V_HUM);  
+MyMessage msg(CHILD_ID, V_LEVEL);  
 unsigned long SLEEP_TIME = 30000; // Sleep time between reads (in milliseconds)
 
 long buffer[NUM_READS];

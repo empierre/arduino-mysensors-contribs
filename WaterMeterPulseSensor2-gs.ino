@@ -12,9 +12,10 @@
  http://www.dfrobot.com/index.php?route=product/product&product_id=81
 
 Contribution: Hek, adapted by epierre to greyscale sensor water meter
-  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
 
-
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
 */
 
 #include <MySensor.h>  
@@ -25,7 +26,7 @@ Contribution: Hek, adapted by epierre to greyscale sensor water meter
 #define SLEEP_MODE false                        // flowvalue can only be reported when sleep mode is false.
 #define MAX_FLOW 40                             // Max flow (l/min) value to report. This filetrs outliers.
 #define INTERRUPT DIGITAL_INPUT_SENSOR-2        // Usually the interrupt = pin -2 (on uno/nano anyway)
-#define CHILD_ID 5                              // Id of the sensor child
+#define CHILD_ID 1                              // Id of the sensor child
 unsigned long SEND_FREQUENCY = 20000;           // Minimum time between send (in seconds). We don't want to spam the gateway.
 
 MySensor gw;
@@ -64,12 +65,11 @@ void setup()
   // Register this device as Waterflow sensor
   gw.present(CHILD_ID, S_WATER);       
 
+  pulseCount = oldPulseCount = 0;
+
   // Fetch last known pulse count value from gw
    gw.request(CHILD_ID, V_VAR1);
 
-  //Serial.print("Last pulse count from gw:");
-  //Serial.println(pulseCount);
-  //  attachInterrupt(INTERRUPT, onPulse, RISING);
   lastSend = millis();
   
   //led blinking
