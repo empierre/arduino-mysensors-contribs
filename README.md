@@ -18,7 +18,7 @@ Environmental sensors:
 * VibrationSensor.ino : simple vibration sensor, tested
 * FloodSensor: tested
 * LeafWetnessSensor.ino: validated, need an immersion gold sensor
-* SoilMoistSensorGypsum.ino: not tested
+* SoilMoistSensor.ino: validated
 * SoilMoistSensorSHT1x.ino: validated, sensor cannot be burried
 
 Variants for ceech board (Solar pannel + LiOn/LiPo NRF24L compatible board):
