@@ -1,32 +1,48 @@
- /*
-  Arduino Multiple Air Quality Sensors for MICS-6814 
-
-  connect the sensor as follows when standalone:
-  5V
-  GDN
-  SDA -> A4 (on nano)
-  SCL -> A5 (on nano)
-
-  based on     Jacky Zhang, Embedded Software Engineer   qi.zhang@seeed.cc
-  Contribution: epierre
-    
-  Precaution:
-     The gasses detected by these gas sensors can be deadly in high concentrations. Always be careful to perform gas tests in well ventilated areas.
- 
-  Note:
-     THESE GAS SENSOR MODULES ARE NOT DESIGNED FOR OR APPROVED FOR ANY APPLICATION INVOLVING HEALTH OR HUMAN SAFETY. THESE GAS SENSOR MODULES ARE FOR EXPERIMENTAL PURPOSES ONLY.
-
-  License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
- 
-*/
+ /**
+ * The MySensors Arduino library handles the wireless radio link and protocol
+ * between your home built sensors/actuators and HA controller of choice.
+ * The sensors forms a self healing radio network with optional repeaters. Each
+ * repeater and gateway builds a routing tables in EEPROM which keeps track of the
+ * network topology allowing messages to be routed to nodes.
+ *
+ * Created by Henrik Ekblad <henrik.ekblad@mysensors.org>
+ * Copyright (C) 2013-2015 Sensnology AB
+ * Full contributor list: https://github.com/mysensors/Arduino/graphs/contributors
+ *
+ * Documentation: http://www.mysensors.org
+ * Support Forum: http://forum.mysensors.org
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ *******************************
+ *
+ * DESCRIPTION
+ *
+ *    Air Quality Sensors for MICS-6814 
+ * 
+ *  Wiring:
+ * 
+ * 5V
+ * GDN
+ * SDA -> A4 (on nano)
+ * SCL -> A5 (on nano)
+ *
+ * based on     Jacky Zhang, Embedded Software Engineer   qi.zhang@seeed.cc
+ * Contribution: epierre
+ *   
+ * Precaution:
+ *    The gasses detected by these gas sensors can be deadly in high concentrations. Always be careful to perform gas tests in well ventilated areas.
+ * 
+ *  Note:
+ *     THESE GAS SENSOR MODULES ARE NOT DESIGNED FOR OR APPROVED FOR ANY APPLICATION INVOLVING HEALTH OR HUMAN SAFETY. THESE GAS SENSOR MODULES ARE FOR EXPERIMENTAL PURPOSES ONLY.*
+ **/
 
 #include <SPI.h>  
 #include <MySensor.h>  
 #include <Wire.h> 
 #include <MutichannelGasSensor.h>
-
-
-
 
 /**********************Application Related Macros**********************************/
 #define         GAS_CL2                      (0)
@@ -54,7 +70,6 @@
 #define         GAS_NHEX                    (23) //n-hexa
 #define         GAS_HCHO                    (24) //HCHO / CH2O Formaldehyde
 /*****************************Globals***********************************************/
-float           Ro              =  10000;                          //Ro is initialized to 10 kilo ohms
 
 unsigned long SLEEP_TIME = 600; // Sleep time between reads (in seconds)
 //VARIABLES
@@ -77,14 +92,14 @@ boolean pcReceived = false;
 #define CHILD_ID_C2H5OH 7
 
 MySensor gw;  // Arduino  initialization
-MyMessage msg_nh3(CHILD_ID_NH3, 40);
-MyMessage msg_co(CHILD_ID_CO, 40);
-MyMessage msg_no2(CHILD_ID_NO2, 40);
-MyMessage msg_c3h8(CHILD_ID_C3H8, 40);
-MyMessage msg_c4h10(CHILD_ID_C4H10, 40);
-MyMessage msg_ch4(CHILD_ID_CH4, 40);
-MyMessage msg_h2(CHILD_ID_H2, 40);
-MyMessage msg_c2h5oh(CHILD_ID_C2H5OH, 40);
+MyMessage msg_nh3(CHILD_ID_NH3, V_UNIT_PREFIX);
+MyMessage msg_co(CHILD_ID_CO, V_UNIT_PREFIX);
+MyMessage msg_no2(CHILD_ID_NO2, V_UNIT_PREFIX);
+MyMessage msg_c3h8(CHILD_ID_C3H8, V_UNIT_PREFIX);
+MyMessage msg_c4h10(CHILD_ID_C4H10, V_UNIT_PREFIX);
+MyMessage msg_ch4(CHILD_ID_CH4, V_UNIT_PREFIX);
+MyMessage msg_h2(CHILD_ID_H2, V_UNIT_PREFIX);
+MyMessage msg_c2h5oh(CHILD_ID_C2H5OH, V_UNIT_PREFIX);
 
 void setup()  
 { 
@@ -96,17 +111,23 @@ void setup()
 
   // Register all sensors to gateway (they will be created as child devices)
   gw.present(CHILD_ID_NH3, S_AIR_QUALITY);  
+  gw.send(msg_nh3.set("ppm"));
   gw.present(CHILD_ID_CO, S_AIR_QUALITY);  
+  gw.send(msg_co.set("ppm"));
   gw.present(CHILD_ID_NO2, S_AIR_QUALITY);  
+  gw.send(msg_no2.set("ppm"));
   gw.present(CHILD_ID_C3H8, S_AIR_QUALITY);  
+  gw.send(msg_c3h8.set("ppm"));
   gw.present(CHILD_ID_C4H10, S_AIR_QUALITY);  
+  gw.send(msg_c4h10.set("ppm"));
   gw.present(CHILD_ID_CH4, S_AIR_QUALITY);  
+  gw.send(msg_ch4.set("ppm"));
   gw.present(CHILD_ID_H2, S_AIR_QUALITY);  
+  gw.send(msg_h2.set("ppm"));
   gw.present(CHILD_ID_C2H5OH, S_AIR_QUALITY);  
+  gw.send(msg_c2h5oh.set("ppm"));
   
-  metric = gw.getConfig().isMetric;
   
-
 }
 
 
@@ -173,10 +194,7 @@ void loop()
    
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
-  delay(SLEEP_TIME * 1000); //delay to allow serial to fully print before sleep
-  //gw.powerDown();
-  //sleep.pwrDownMode(); //set sleep mode
-  //gw.sleep(SLEEP_TIME * 1000); //sleep for: sleepTime 
+  gw.sleep(SLEEP_TIME); //sleep for: sleepTime
 }
 
 
