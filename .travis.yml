@@ -18,7 +18,7 @@ script:
   - arduino --verify --board ${BOARD} $PWD/AirQuality-CO2-MH-Z14.ino
   - arduino --verify --board ${BOARD} $PWD/WaterMeterPulseSensor2.ino
   - arduino --verify --board ${BOARD} $PWD/DustSensor_Shinyei_PPD42NS.ino
-  - arduino --verify --board ${BOARD} $PWD/ AirQuality-MQ135.ino
+  - arduino --verify --board ${BOARD} $PWD/AirQuality-MQ135.ino
   
 notifications:
   email:
