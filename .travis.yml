@@ -12,7 +12,7 @@ before_install:
   
 install:  
   - ln -s $PWD/libraries/MySensors /usr/local/share/arduino/libraries/MySensors
-  - arduino --install-library "MySensors"
+  #- arduino --install-library "MySensors"
   
 script:
   - arduino --verify --board ${BOARD} $PWD/AirQuality-CO-NO2-NH3.ino
