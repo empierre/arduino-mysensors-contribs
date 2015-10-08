@@ -9,9 +9,10 @@ before_install:
   - sudo mv arduino-1.6.5 /usr/local/share/arduino
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
   - git clone https://github.com/mysensors/Arduino.git
-
+  
 install:  
   - ln -s $PWD/libraries/MySensors /usr/local/share/arduino/libraries/MySensors
+  - arduino --install-library "MySensors"
   
 script:
   - arduino --verify --board ${BOARD} $PWD/AirQuality-CO-NO2-NH3.ino
