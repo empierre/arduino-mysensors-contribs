@@ -9,6 +9,8 @@ Air Quality:
 * DustSensor-*.ino : Dust sensors from several providers, validated for DSM
 * AirQuality-MQ2.ino : for ethanol... ongoing
 * AirQuality-MICS2614.ino: on going
+* AirQuality-CO-NO2-NH3.ino: for Mics-6814 validated
+* AirQuality-HCHO.ino: for HSHO, validated
 
 Environmental sensors:
 * PressureSensor.ino : validated, works well, too much temp reading given back
