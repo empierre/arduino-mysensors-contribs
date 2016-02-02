@@ -77,10 +77,10 @@ void setup() {
   gw.begin();
     
   // Send the sketch version information to the gateway and Controller
-  gw.sendSketchInfo("AIQ HCHO", "1.0");
+  gw.sendSketchInfo("AIQ HCHO", "1.1");
   
   gw.present(CHILD_ID, S_AIR_QUALITY);  
-  gw.send(msg_hcho.set("mg/m3"));
+  gw.send(msg_hcho.set("ppm"));
 }
 
 void loop() {
@@ -114,8 +114,8 @@ void loop() {
      //for (int i=0;i<20;i++) Serial.print(testResponse[i], HEX);
     AirResponse air;
     parse_air_response(&air, testResponse);
-        
-    long int v=get_read_value(air)*1000;
+    //move mg/m3 to ppm, HCHO weight is 30.03   
+    long int v=get_read_value(air)*(8,31441*298,15)/(30,03*101,325);
     
     if ((v != val)&&(v>0)) {
       gw.send(msg_hcho.set((long int)v));  

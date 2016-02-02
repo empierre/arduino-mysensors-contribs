@@ -146,31 +146,31 @@ void loop()
 
   float c;
   
-    c = (int)(mutichannelGasSensor.measure_NH3()*1000);
+    c = mutichannelGasSensor.measure_NH3();
     
     if((c>=0)&&(c!=val_nh3)) {
         Serial.print("NH3: ");
         Serial.print(c);
         val_nh3=c;
-        gw.send(msg_nh3.set((long int)c));        
+        gw.send(msg_nh3.set(c,3));        
     }        
 
-    c = (int)(mutichannelGasSensor.measure_CO()*1000); 
+    c = mutichannelGasSensor.measure_CO(); 
     
     if((c>=0)&&(c!=val_co)) {
       Serial.print("CO: ");
       Serial.print(c);
         val_co=c;
-        gw.send(msg_co.set((long int)c));        
+        gw.send(msg_co.set(c,3));        
     }
         
-    c = (int)(mutichannelGasSensor.measure_NO2()*1000);
+    c = mutichannelGasSensor.measure_NO2();
     
     if((c>=0)&&(c!=val_no2)) {
       Serial.print("NO2: ");
       Serial.print(c);
         val_no2=c;
-        gw.send(msg_no2.set((long int)c));        
+        gw.send(msg_no2.set(c,3));
     }    
     
     /*c = mutichannelGasSensor.measure_C3H8();
@@ -178,39 +178,39 @@ void loop()
     if(c>=0) Serial.print(c);
     else Serial.print("invalid");
     Serial.println(" ppm");
-    gw.send(msg_c3h8.set((long int)ceil(c)));
+    gw.send(msg_c3h8.set(c,3));
 
     c = mutichannelGasSensor.measure_C4H10();
     Serial.print("The concentration of C4H10 is ");
     if(c>=0) Serial.print(c);
     else Serial.print("invalid");
     Serial.println(" ppm");
-    gw.send(msg_c4h10.set((long int)ceil(c)));
+    gw.send(msg_c4h10.set(c,3));
 
     c = mutichannelGasSensor.measure_CH4();
     Serial.print("The concentration of CH4 is ");
     if(c>=0) Serial.print(c);
     else Serial.print("invalid");
     Serial.println(" ppm");
-    gw.send(msg_ch4.set((long int)ceil(c)));
+    gw.send(msg_ch4.set(c,3));
 
     c = mutichannelGasSensor.measure_H2();
     Serial.print("The concentration of H2 is ");
     if(c>=0) Serial.print(c);
     else Serial.print("invalid");
     Serial.println(" ppm");
-    gw.send(msg_h2.set((long int)ceil(c)));
+    gw.send(msg_h2.set(c,3));
     
     c = mutichannelGasSensor.measure_C2H5OH();
     Serial.print("The concentration of C2H5OH is ");
     if(c>=0) Serial.print(c);
     else Serial.print("invalid");
     Serial.println(" ppm");
-    gw.send(msg_c2h5oh.set((long int)ceil(c)));*/
+    gw.send(msg_c2h5oh.set(c,3));*/
    
   // Power down the radio.  Note that the radio will get powered back up
   // on the next write() call.
-  gw.sleep(SLEEP_TIME*2); //sleep for: sleepTime
+  gw.sleep(SLEEP_TIME*4); //sleep for: sleepTime
 }
 
 
