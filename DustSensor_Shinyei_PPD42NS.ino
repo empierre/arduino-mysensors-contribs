@@ -1,19 +1,37 @@
-/*
-  Arduino Dust Sensor for Shinyei PPD42NS
-  connect the sensor as follows :
-          Pin 1 of dust sensor          -> Ground
-       	  Pin 2 of dust sensor PM2.5    -> Digital 6 (PWM) 
-       	  Pin 3 of dust sensor          -> +5V 
-          Pin 4 of dust sensor PM1      -> Digital 3 (PMW)
-	  
-  Based on: http://www.howmuchsnow.com/arduino/airquality/grovedust/
-  Authors: Chris Nafis Apris 2012
-  Datasheet:  http://www.sca-shinyei.com/pdf/PPD42NS.pdf
-  Contribution: epierre
-  
-  The dust sensor used (see purchase guide for latest link):
- 
-  
+/**
+ * The MySensors Arduino library handles the wireless radio link and protocol
+ * between your home built sensors/actuators and HA controller of choice.
+ * The sensors forms a self healing radio network with optional repeaters. Each
+ * repeater and gateway builds a routing tables in EEPROM which keeps track of the
+ * network topology allowing messages to be routed to nodes.
+ *
+ * Created by Henrik Ekblad <henrik.ekblad@mysensors.org>
+ * Copyright (C) 2013-2015 Sensnology AB
+ * Full contributor list: https://github.com/mysensors/Arduino/graphs/contributors
+ *
+ * Documentation: http://www.mysensors.org
+ * Support Forum: http://forum.mysensors.org
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ *******************************
+ *
+ * DESCRIPTION
+ * Arduino Dust Sensor for Shinyei PPD42NS
+ * connect the sensor as follows :
+ *         Pin 1 of dust sensor          -> Ground
+ *      	  Pin 2 of dust sensor PM2.5    -> Digital 6 (PWM) 
+ *      	  Pin 3 of dust sensor          -> +5V 
+ *         Pin 4 of dust sensor PM1      -> Digital 3 (PMW)
+ *	  
+ *  Based on: http://www.howmuchsnow.com/arduino/airquality/grovedust/
+ *  Authors: Chris Nafis Apris 2012
+ * Datasheet:  http://www.sca-shinyei.com/pdf/PPD42NS.pdf
+ * Contribution: epierre
+ * 
+ * The dust sensor used (see purchase guide for latest link):
 */
 
 #include <MySensor.h>  
@@ -39,10 +57,15 @@ unsigned long lowpulseoccupancy = 0;
 float ratio = 0;
 long concentrationPM25 = 0;
 long concentrationPM10 = 0;
-
+int temp=20; //external temperature, if you can replace this with a DHT11 or better 
+long ppmv;
+  
 MySensor gw;
 MyMessage dustMsgPM10(CHILD_ID_DUST_PM10, V_LEVEL);
+MyMessage msgPM10(CHILD_ID_DUST_PM10, V_UNIT_PREFIX);
 MyMessage dustMsgPM25(CHILD_ID_DUST_PM25, V_LEVEL);
+MyMessage msgPM25(CHILD_ID_DUST_PM25, V_UNIT_PREFIX);
+
 
 void setup()  
 {
@@ -51,9 +74,11 @@ void setup()
   // Send the sketch version information to the gateway and Controller
   gw.sendSketchInfo("Dust Sensor PPD42NS", "1.4");
 
- // Register all sensors to gateway (they will be created as child devices)
+// Register all sensors to gateway (they will be created as child devices)
   gw.present(CHILD_ID_DUST_PM10, S_DUST);  
+  gw.send(msgPM10.set("ppm"));
   gw.present(CHILD_ID_DUST_PM25, S_DUST);  
+  gw.send(msgPM25.set("ppm"));  
   
   pinMode(DUST_SENSOR_DIGITAL_PIN_PM10,INPUT);
   pinMode(DUST_SENSOR_DIGITAL_PIN_PM25,INPUT);
@@ -68,9 +93,12 @@ void loop()
   Serial.print("PM25: ");
   Serial.println(concentrationPM25);
   Serial.print("\n");
+  //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
+  //0.08205   = Universal gas constant in atm·m3/(kmol·K)
+  ppmv=(concentrationPM25*0.0283168/100/1000) *  (0.08205*temp)/0.01;
 
   if ((ceil(concentrationPM25) != lastDUSTPM25)&&((long)concentrationPM25>0)) {
-      gw.send(dustMsgPM25.set((long)ceil(concentrationPM25)));
+      gw.send(dustMsgPM25.set((long)ppmv));
       lastDUSTPM25 = ceil(concentrationPM25);
   }
  //get PM 1.0 - density of particles over 1 μm.
@@ -78,8 +106,12 @@ void loop()
   Serial.print("PM10: ");
   Serial.println(concentrationPM10);
   Serial.print("\n");
+  //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
+  //0.08205   = Universal gas constant in atm·m3/(kmol·K)
+  ppmv=(concentrationPM10*0.0283168/100/1000) *  (0.08205*temp)/0.01;
+  
   if ((ceil(concentrationPM10) != lastDUSTPM10)&&((long)concentrationPM10>0)) {
-      gw.send(dustMsgPM10.set((long)ceil(concentrationPM10)));
+      gw.send(dustMsgPM10.set((long)ppmv));
       lastDUSTPM10 = ceil(concentrationPM10);
   }
  

@@ -54,6 +54,8 @@ unsigned long lowpulseoccupancy = 0;
 float ratio = 0;
 long concentrationPM25 = 0;
 long concentrationPM10 = 0;
+int temp=20; //external temperature, if you can replace this with a DHT11 or better 
+long ppmv;
 
 MySensor gw;
 MyMessage dustMsgPM10(CHILD_ID_DUST_PM10, V_LEVEL);
@@ -87,9 +89,12 @@ void loop()
   Serial.print("PM25: ");
   Serial.println(concentrationPM25);
   Serial.print("\n");
+  //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
+  //0.08205   = Universal gas constant in atm·m3/(kmol·K)
+  ppmv=(concentrationPM25*0.0283168/100/1000) *  (0.08205*temp)/0.01;
 
   if ((concentrationPM25 != lastDUSTPM25)&&(concentrationPM25>0)) {
-      gw.send(dustMsgPM25.set((long)ceil(concentrationPM25)));
+      gw.send(dustMsgPM25.set((long)ppmv));
       lastDUSTPM25 = ceil(concentrationPM25);
   }
  //get PM 1.0 - density of particles over 1 μm.
@@ -99,8 +104,7 @@ void loop()
   Serial.print("\n");
   //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
   //0.08205   = Universal gas constant in atm·m3/(kmol·K)
-  int temp=20; //external temperature, if you can replace this with a DHT11 or better 
-  long ppmv=(concentrationPM10*0.0283168/100/1000) *  (0.08205*temp)/0.01;
+  ppmv=(concentrationPM10*0.0283168/100/1000) *  (0.08205*temp)/0.01;
   
   if ((ceil(concentrationPM10) != lastDUSTPM10)&&((long)concentrationPM10>0)) {
       gw.send(dustMsgPM10.set((long)ppmv));
