@@ -66,8 +66,6 @@ foreach my $f ( @results ) {
 
 }
 
-print "http://api.thingspeak.com/update?key=$API_KEY".$url;
-exit;
 	# Create a HTTP request
 	my $req = HTTP::Request->new(POST => "http://api.thingspeak.com/update?key=$API_KEY".$url);
 	 
