@@ -30,9 +30,8 @@
 
 unsigned long SLEEP_TIME = 30000; // Sleep time between reads (in seconds)
 //VARIABLES
-//float Ro = 10000.0;    // this has to be tuned 10K Ohm
 float mq135_ro = 10000.0;    // this has to be tuned 10K Ohm
-int val = 0;           // variable to store the value coming from the sensor
+int val = 0;                 // variable to store the value coming from the sensor
 float valAIQ =0.0;
 float lastAIQ =0.0;
 
@@ -76,11 +75,12 @@ void loop()
   uint16_t valr = analogRead(AIQ_SENSOR_ANALOG_PIN);// Get AIQ value
   Serial.println(val);
   uint16_t val =  ((float)22000*(1023-valr)/valr); 
+  //during clean air calibration, read the Ro value and replace MQ135_DEFAULTRO value with it, you can even deactivate following function call.
   mq135_ro = mq135_getro(val, MQ135_DEFAULTPPM);
   //convert to ppm (using default ro)
   valAIQ = mq135_getppm(val, MQ135_DEFAULTRO);
 
-  Serial.print ( "Vrl / Rs / ratio:");
+  Serial.print ( "Val / Ro / value:");
   Serial.print ( val);
   Serial.print ( " / ");
   Serial.print ( mq135_ro);
@@ -89,7 +89,7 @@ void loop()
 
  
   if (valAIQ != lastAIQ) {
-      gw.send(msg.set((int)ceil(valAIQ)));
+      gw.send(msg.set(MQ135_DEFAULTPPM+(int)ceil(valAIQ)));
       lastAIQ = ceil(valAIQ);
   }
  
