@@ -42,6 +42,7 @@
 #define         MQ138_SENSOR                 (8)
 #define         TGS2602_SENSOR               (14)
 #define         HCHO_SENSOR                  (16)
+#define         MS2610_SENSOR                (17)
 #define         PRESSURE_SENSOR_DIGITAL_PIN  (14)
 #define         RL_VALUE                     (990) //define the load resistance on the board, in ohms
 /***********************Software Related Macros************************************/
@@ -85,6 +86,7 @@ float           CH4Curve[2]     =  {1081.498208, -1.443059209};  //MQ6
 float           H2_secCurve[2]  =  {137997.7173, -3.76632598};   //MQ6
 float           CL2Curve[2]     =  {56.01727602, -1.359048399};  //MQ131
 float           O3Curve[2]      =  {42.84561841, -1.043297135};  //MQ131
+float           O3_secCurve[2]  =  {45.34696335, 1.743219536};   //MS2610
 float           CO2Curve[2]     =  {113.7105289, -3.019713765};  //MQ135
 float           CO_secCurve[2]  =  {726.7809737, -4.040111669};  //MQ135
 float           NH4Curve[2]     =  {84.07117895, -4.41107687};   //MQ135
@@ -97,17 +99,17 @@ float           CO_terCurve[2]  =  {2142.297846, -2.751369226};  //MQ136
 float           NHEX_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,200) (0.8,1000) (0.28,10000)
 float           C6H6_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (2.1,200) (1,1000) (0.32,10000)
 float           C3H8_Curve[2]  =  {2142.297846, -2.751369226};   //MQ138 (1.8,200) (0.8,1000) (0.28,10000)
-float           C2H5OH_terCurve[2]  =  {2142.297846, -2.751369226};//MQ138 (3,200) (1.8,1000) (0.7,10000)
-float           CH4_terCurve[2] =  {2142.297846, -2.751369226};  //MQ138 (3,200) (1.8,1000) (0.7,10000)
-float           C2H5OH_secCurve[2]  =  {0.2995093465,-3.148170562};//TGS2600
+float           C2H5OH_terCurve[2] =  {2142.297846, -2.751369226};//MQ138 (3,200) (1.8,1000) (0.7,10000)
+float           CH4_terCurve[2] =  {2142.297846, -2.751369226};   //MQ138 (3,200) (1.8,1000) (0.7,10000)
+float           C2H5OH_secCurve[2] =  {0.2995093465,-3.148170562};//TGS2600
 float           C4H10Curve[2]   =  {0.3555567714, -3.337882361}; //TGS2600
 float           H2_terCurve[2]  =  {0.3417050674, -2.887154835}; //TGS2600
 float           C7H8Curve[2]    =  {37.22590719,   2.078062258}; //TGS2602     (0.3;1)( 0.8;10) (0.4;30)
 float           H2S_Curve[2]    =  {0.05566582614,-2.954075758}; //TGS2602     (0.8,0.1) (0.4,1) (0.25,3)
-float           C2H5OH_quarCurve[2]  =  {0.5409499131,-2.312489623};//TGS2602  (0.75,1) (0.3,10) (0.17,30)  
+float           C2H5OH_quarCurve[2] =  {0.5409499131,-2.312489623};//TGS2602  (0.75,1) (0.3,10) (0.17,30)  
 float           NH3_Curve[2]    =  {0.585030495,  -3.448654502  }; //TGS2602   (0.8,1) (0.5,10) (0.3,30) 
 float           HCHO_Curve[2]   =  {1.478772974,  -2.224808489  }; //HCHO      (0.59,5) (0.41,10) (0.23,40) 
-float           H2_terCurve[2]  =  {2.452065204,-2.282530712};     //HCHO      (0.68,5) (0.59,10) (0.29,40) 
+float           H2_quaCurve[2]  =  {2.452065204,-2.282530712};     //HCHO      (0.68,5) (0.59,10) (0.29,40) 
 float           C7H8_secCurve[2]=  {4.798168577,   -0.8100009624}; //HCHO Toluene (0.8,5)  (0.5,10)  (0.07,40)
 float           C6H6_secCurve[2]=  {5.59434996, -0.6062729607};    //HCHO benzol  (0.25,5) (0.8,10)  (0.09,40)
 float           Ro              =  10000;                          //Ro is initialized to 10 kilo ohms
@@ -379,10 +381,10 @@ void loop()
  //2SH12
    Serial.print("2SH12  :"); 
    Serial.print("SO2   :"); 
-   a=MQRead(S2SH12_SENSOR,RL5);
+   a=analogRead(S2SH12_SENSOR);
    Serial.print(a);   Serial.print( " raw " );      
    Serial.print("\n");  
-    gw.send(msg_2sh12.set((int)ceil(MQRead(S2SH12_SENSOR,RL5))));
+    gw.send(msg_2sh12.set((int)ceil(analogRead(S2SH12_SENSOR))));
  //TGS2602 C7H8
    Serial.print("TGS2602:"); 
    Serial.print("C7H8  :"); 
@@ -398,7 +400,7 @@ void loop()
   digitalWrite(DUST_SENSOR_DIGITAL_PIN,HIGH); // turn the LED off
   // 0 - 5V mapped to 0 - 1023 integer values
   // recover voltage
-  calcVoltage = voMeasured * (5.0 / 1024.0);  // Adapt to devic voltage
+  calcVoltage = voMeasured * (5.0 / 1024.0);  // Adapt to device voltage
   // linear eqaution taken from http://www.howmuchsnow.com/arduino/airquality/
   // Chris Nafis (c) 2012
   //  dustDensity = (0.17 * calcVoltage - 0.1)*1000;
@@ -427,13 +429,10 @@ void loop()
 /****************** MQResistanceCalculation ****************************************
 Input:   raw_adc - raw value read from adc, which represents the voltage
 Output:  the calculated sensor resistance
-Remarks: The sensor and the load resistor forms a voltage divider. Given the voltage
-         across the load resistor and its resistance, the resistance of the sensor
-         could be derived.
+Remarks: The sensor and the load resistor forms a voltage divider. Given the voltage across the load resistor and its resistance, the resistance of the sensor could be derived.
 ************************************************************************************/ 
 float MQResistanceCalculation(int raw_adc,float rl_value)
 {
-//  return ( ((float)rl_value*(1023-raw_adc)/raw_adc));
   return  (long)((long)(1024*1000*(long)rl_value)/raw_adc-(long)rl_value);
 ;
 }
@@ -593,7 +592,7 @@ int  MQGetPercentage(float rs_ro_ratio, float ro, float *pcurve)
   return (double)(pcurve[0] * pow(((double)rs_ro_ratio/ro), pcurve[1]));
 }
 
-/*****************************  MQGetPercentage **********************************
+/**********************************  sample  ***************************************
 Input:   pressure 
 Output:  an int containing the weather based on pressure
 ************************************************************************************/ 

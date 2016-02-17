@@ -11,8 +11,8 @@ use DBI;
 use Config::Simple;
 
 # Initialization strings
-my $base="/home/cubie/";
-my $conf="/home/cubie/.conf-mysensors";
+my $base="/home/in/";
+my $conf="/home/in/.conf-mysensors";
 my $ccnt;
 my $cfg;
 my ($count, $string, $radioId, $value);

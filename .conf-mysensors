@@ -1,6 +1,6 @@
 [Internal]
 hardware_domo=29
-domo_ip=192.168.0.24
+domo_ip=192.168.0.28
 domo_port=8080
 domo_login=
 domo_pass=
