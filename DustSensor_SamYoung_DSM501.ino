@@ -55,7 +55,7 @@ float ratio = 0;
 long concentrationPM25 = 0;
 long concentrationPM10 = 0;
 int temp=20; //external temperature, if you can replace this with a DHT11 or better 
-long ppmv;
+float ppmv;
 
 MySensor gw;
 MyMessage dustMsgPM10(CHILD_ID_DUST_PM10, V_LEVEL);
@@ -68,7 +68,7 @@ void setup()
   gw.begin();
 
   // Send the sketch version information to the gateway and Controller
-  gw.sendSketchInfo("Dust Sensor DSM501", "1.4");
+  gw.sendSketchInfo("Dust Sensor DSM501", "1.5");
 
   // Register all sensors to gateway (they will be created as child devices)
   gw.present(CHILD_ID_DUST_PM10, S_DUST);  
@@ -91,10 +91,11 @@ void loop()
   Serial.print("\n");
   //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
   //0.08205   = Universal gas constant in atm·m3/(kmol·K)
-  ppmv=(concentrationPM25*0.0283168/100/1000) *  (0.08205*temp)/0.01;
+  ppmv=(float)(((concentrationPM25*0.0283168)/100) *  ((0.08205*temp)/0.01))/1000;
+  
 
   if ((concentrationPM25 != lastDUSTPM25)&&(concentrationPM25>0)) {
-      gw.send(dustMsgPM25.set((long)ppmv));
+      gw.send(dustMsgPM25.set(ppmv,3));
       lastDUSTPM25 = ceil(concentrationPM25);
   }
  //get PM 1.0 - density of particles over 1 μm.
@@ -104,10 +105,10 @@ void loop()
   Serial.print("\n");
   //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
   //0.08205   = Universal gas constant in atm·m3/(kmol·K)
-  ppmv=(concentrationPM10*0.0283168/100/1000) *  (0.08205*temp)/0.01;
+  ppmv=(((concentrationPM10*0.0283168/100) *  (0.08205*temp)/0.01))/1000;
   
   if ((ceil(concentrationPM10) != lastDUSTPM10)&&((long)concentrationPM10>0)) {
-      gw.send(dustMsgPM10.set((long)ppmv));
+      gw.send(dustMsgPM10.set(ppmv,3));
       lastDUSTPM10 = ceil(concentrationPM10);
   }
  
