@@ -243,7 +243,7 @@ void setup()
   Serial.println(Ro2);
   gw.send(pcMsg_mq131.set((long int)ceil(Ro2)));
   Serial.print("    TGS2600:"); 
-  Ro3 = MQCalibration(TGS2600_SENSOR,10,RL3,C2H5OH_terCurve);
+  Ro3 = MQCalibration(TGS2600_SENSOR,10,RL3,C2H5OH_secCurve);
   Serial.println(Ro3);
   gw.send(pcMsg_tgs2600.set((long int)ceil(Ro3)));
   Serial.print("    MQ135:"); 
@@ -550,7 +550,7 @@ int MQGetGasPercentage(float rs_ro_ratio, float ro, int gas_id, int sensor_id)
     }
   } else if (sensor_id == TGS2600_SENSOR ){
     if ( gas_id == GAS_C2H5OH ) {
-      return MQGetPercentage(rs_ro_ratio,ro,C2H5OH_terCurve);  //TGS2600
+      return MQGetPercentage(rs_ro_ratio,ro,C2H5OH_secCurve);  //TGS2600
     } else if ( gas_id == GAS_C4H10 ) {
        return MQGetPercentage(rs_ro_ratio,ro,C4H10Curve);   //TGS2600
     } else if ( gas_id == GAS_H2 ) {
