@@ -22,7 +22,7 @@
  * 
  * Dust Sensor for SamYoung DSM501
  *   connect the sensor as follows :
- *    Pin 2 of dust sensor PM1      -> Digital 3 (PMW)
+ *        Pin 2 of dust sensor PM1      -> Digital 3 (PMW)
  *	  Pin 3 of dust sensor          -> +5V 
  * 	  Pin 4 of dust sensor PM2.5    -> Digital 6 (PWM) 
  * 	  Pin 5 of dust sensor          -> Ground
@@ -36,8 +36,8 @@
 
 #define CHILD_ID_DUST_PM10            0
 #define CHILD_ID_DUST_PM25            1
-#define DUST_SENSOR_DIGITAL_PIN_PM10  6
-#define DUST_SENSOR_DIGITAL_PIN_PM25  3
+#define DUST_SENSOR_DIGITAL_PIN_PM10  3
+#define DUST_SENSOR_DIGITAL_PIN_PM25  6
 
 unsigned long SLEEP_TIME = 30*1000; // Sleep time between reads (in milliseconds)
 //VARIABLES
