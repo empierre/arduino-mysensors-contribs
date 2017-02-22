@@ -23,7 +23,7 @@
  *  MH-Z14 CO2 sensor
  * 
  *  Wiring:
- *   Pad 1, Pad 5: Vin (Voltage input 4.5V-6V) 
+ *   Pad 1, Pad 15: Vin (Voltage input 4.5V-6V) 
  *   Pad 2, Pad 3, Pad 12: GND 
  *   Pad 6: PWM output ==> pin 6
  *
