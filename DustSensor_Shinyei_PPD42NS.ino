@@ -120,6 +120,25 @@ void loop()
   
 }
 
+float conversion25(long concentrationPM25) {
+  double pi = 3.14159;
+  double density = 1.65 * pow (10, 12);
+  double r25 = 0.44 * pow (10, -6);
+  double vol25 = (4/3) * pi * pow (r25, 3);
+  double mass25 = density * vol25;
+  double K = 3531.5;
+  return (concentrationPM25) * K * mass25;
+}
+
+float conversion10(long concentrationPM10) {
+  double pi = 3.14159;
+  double density = 1.65 * pow (10, 12);
+  double r10 = 0.44 * pow (10, -6);
+  double vol10 = (4/3) * pi * pow (r10, 3);
+  double mass10 = density * vol10;
+  double K = 3531.5;
+  return (concentrationPM10) * K * mass10;
+}
 
 long getPM(int DUST_SENSOR_DIGITAL_PIN) {
 
