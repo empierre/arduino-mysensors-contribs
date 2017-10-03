@@ -1,12 +1,18 @@
 /*
   Arduino MQ135
 
-  connect the sensor as follows :
+  connect the sensor as follows for raw sensor :
 
   A H A   >>> 5V
   B       >>> A0
   H       >>> GND
   B       >>> 10K ohm >>> GND
+
+  connect the sensor as follows if on board :
+
+  Vcc     >>> 5V
+  Gnd     >>> Gnd
+  Aout    >>> A0 
  
   Contribution: epierre
   Based on David Gironi http://davidegironi.blogspot.fr/2014/01/cheap-co2-meter-using-mq135-sensor-with.html
@@ -30,10 +36,10 @@
 
 unsigned long SLEEP_TIME = 30000; // Sleep time between reads (in seconds)
 //VARIABLES
-float mq135_ro = 10000.0;    // this has to be tuned 10K Ohm
-int val = 0;                 // variable to store the value coming from the sensor
-float valAIQ =0.0;
-float lastAIQ =0.0;
+double mq135_ro = 10000;    // this has to be tuned 10K Ohm
+double val = 0;                 // variable to store the value coming from the sensor
+double valAIQ =0;
+double lastAIQ =0;
 
 MySensor gw;
 MyMessage msg(CHILD_ID_AIQ, V_LEVEL);
@@ -65,16 +71,16 @@ double ret = 0;
 double validinterval = 0;
 validinterval = resvalue/(double)ro;
 if(validinterval<MQ135_MAXRSRO && validinterval>MQ135_MINRSRO) {
-ret = (double)MQ135_SCALINGFACTOR * pow( ((double)resvalue/ro), MQ135_EXPONENT);
+ret = (double)((double)MQ135_SCALINGFACTOR * pow( ((double)resvalue/ro), MQ135_EXPONENT));
 }
 return ret;
 }
 
 void loop()      
 {    
-  uint16_t valr = analogRead(AIQ_SENSOR_ANALOG_PIN);// Get AIQ value
+  double valr = analogRead(AIQ_SENSOR_ANALOG_PIN);// Get AIQ value
   Serial.println(val);
-  uint16_t val =  ((float)22000*(1023-valr)/valr); 
+  double val =  ((float)22000*(1023-valr)/valr); 
   //during clean air calibration, read the Ro value and replace MQ135_DEFAULTRO value with it, you can even deactivate following function call.
   mq135_ro = mq135_getro(val, MQ135_DEFAULTPPM);
   //convert to ppm (using default ro)
