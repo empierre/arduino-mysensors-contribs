@@ -115,9 +115,9 @@ void loop()
       lastDUSTPM25 = ceil(ppmv2_5);
   }
     
-  if ((ceil(PM10Value) != lastDUSTPM10)&&((long)concentrationPM10>0)) {
+  if ((ceil(ppmv10_0) != lastDUSTPM10)&&((long)ppmv10_0>0)) {
       gw.send(dustMsgPM10.set((long)ppmv));
-      lastDUSTPM10 = ceil(PM10Value);
+      lastDUSTPM10 = ceil(ppmv10_0);
   }
  
   //sleep to save on radio
