@@ -50,6 +50,12 @@ float valDUSTPM25 =0.0;
 float lastDUSTPM25 =0.0;
 float valDUSTPM10 =0.0;
 float lastDUSTPM10 =0.0;
+float PM01Value;
+float PM10_0Value;
+float PM2_5Value;
+float ppmv2_5;
+float ppmv10_0;
+float ppmv1_0;
 unsigned long duration;
 unsigned long starttime;
 unsigned long endtime;
@@ -100,28 +106,49 @@ void loop()
       if(checkValue(buf,LENG)){
         PM01Value=transmitPM01(buf); //count PM1.0 value of the air detector module
         PM2_5Value=transmitPM2_5(buf);//count PM2.5 value of the air detector module
-        PM10Value=transmitPM10(buf); //count PM10 value of the air detector module 
+        PM10_0Value=transmitPM10(buf); //count PM10 value of the air detector module 
         //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
         //0.08205   = Universal gas constant in atm·m3/(kmol·K)
         ppmv2_5=(PM2_5Value*0.0283168/100/1000) *  (0.08205*temp)/0.01;
         //ppmv=mg/m3 * (0.08205*Tmp)/Molecular_mass
         //0.08205   = Universal gas constant in atm·m3/(kmol·K)
-        ppmv10_0=(PM10Value*0.0283168/100/1000) *  (0.08205*temp)/0.01;
+        ppmv10_0=(PM10_0Value*0.0283168/100/1000) *  (0.08205*temp)/0.01;
       }           
     } 
+   }
     
   if ((ceil(ppmv2_5) != lastDUSTPM25)&&((long)ppmv2_5>0)) {
-      gw.send(dustMsgPM25.set((long)ppmv));
+      gw.send(dustMsgPM25.set((long)ppmv2_5));
       lastDUSTPM25 = ceil(ppmv2_5);
   }
     
   if ((ceil(ppmv10_0) != lastDUSTPM10)&&((long)ppmv10_0>0)) {
-      gw.send(dustMsgPM10.set((long)ppmv));
+      gw.send(dustMsgPM10.set((long)ppmv10_0));
       lastDUSTPM10 = ceil(ppmv10_0);
   }
  
   //sleep to save on radio
   gw.sleep(SLEEP_TIME);
+  
+
+ static unsigned long OledTimer=millis();  
+    if (millis() - OledTimer >=1000) 
+    {
+      OledTimer=millis(); 
+      
+      Serial.print("PM1.0: ");  
+      Serial.print(PM01Value);
+      Serial.println("  ug/m3");            
+    
+      Serial.print("PM2.5: ");  
+      Serial.print(PM2_5Value);
+      Serial.println("  ug/m3");     
+      
+      Serial.print("PM1 0: ");  
+      Serial.print(PM10_0Value);
+      Serial.println("  ug/m3");   
+      Serial.println();
+    }
   
 }
 
@@ -147,26 +174,6 @@ float conversion10(long concentrationPM10) {
 
 
 
- static unsigned long OledTimer=millis();  
-    if (millis() - OledTimer >=1000) 
-    {
-      OledTimer=millis(); 
-      
-      Serial.print("PM1.0: ");  
-      Serial.print(PM01Value);
-      Serial.println("  ug/m3");            
-    
-      Serial.print("PM2.5: ");  
-      Serial.print(PM2_5Value);
-      Serial.println("  ug/m3");     
-      
-      Serial.print("PM1 0: ");  
-      Serial.print(PM10Value);
-      Serial.println("  ug/m3");   
-      Serial.println();
-    }
-  
-}
 char checkValue(unsigned char *thebuf, char leng)
 {  
   char receiveflag=0;
