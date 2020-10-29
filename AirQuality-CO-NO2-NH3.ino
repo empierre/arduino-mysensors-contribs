@@ -91,7 +91,7 @@ boolean pcReceived = false;
 #define CHILD_ID_H2 6
 #define CHILD_ID_C2H5OH 7
 
-MySensor gw;  // Arduino  initialization
+MySensor gw;  // initializing arduino
 MyMessage msg_nh3(CHILD_ID_NH3, V_UNIT_PREFIX);
 MyMessage msg_co(CHILD_ID_CO, V_UNIT_PREFIX);
 MyMessage msg_no2(CHILD_ID_NO2, V_UNIT_PREFIX);
@@ -141,7 +141,7 @@ void setup()
 }
 
 
-void loop()      
+void loop()   //code written in here will be in a loop   
 {     
 
   float c;
